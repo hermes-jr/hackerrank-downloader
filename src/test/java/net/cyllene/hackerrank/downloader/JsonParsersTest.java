@@ -39,7 +39,7 @@ public class JsonParsersTest {
 		//MockitoAnnotations.initMocks(this);
 
 		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream("/test_sample_submission.json"));
-		String responseBody = fakeData.nextLine();
+		String responseBody = fakeData.useDelimiter("\\Z").next();
 
 		HttpResponse response = prepareResponse(200, responseBody);
 
@@ -73,7 +73,7 @@ public class JsonParsersTest {
 		//MockitoAnnotations.initMocks(this);
 
 		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream("/test_sample_list_of_submissions.json"));
-		String responseBody = fakeData.nextLine();
+		String responseBody = fakeData.useDelimiter("\\Z").next();
 
 		HttpResponse response = prepareResponse(200, responseBody);
 
