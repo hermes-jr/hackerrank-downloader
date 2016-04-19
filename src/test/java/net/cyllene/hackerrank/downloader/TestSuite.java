@@ -6,7 +6,8 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
 		HRChallengeDescriptionTest.class,
-		HRSubmissionTest.class
+		HRSubmissionTest.class,
+		JsonParsersTest.class
 })
 
 public class TestSuite {

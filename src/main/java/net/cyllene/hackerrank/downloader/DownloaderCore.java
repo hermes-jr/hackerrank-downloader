@@ -54,6 +54,10 @@ public enum DownloaderCore {
 				.build();
 	}
 
+	public void setHttpClient(HttpClient client) {
+		httpClient = client;
+	}
+
 	/*
 	public List<HRChallenge> getListOfChallenges() {
 		// https://www.hackerrank.com/rest/contests/master/submissions/grouped?offset=0&limit=1
@@ -128,8 +132,7 @@ public enum DownloaderCore {
 		}
 		JsonNode nodeSubmission = nodeRoot.get("model");
 
-		HRSubmission cleanSub =
-				new HRSubmission.Builder(nodeSubmission.get("id").asInt(), nodeSubmission.get("created_at").asLong(), nodeSubmission.get("status_code").asInt())
+		return new HRSubmission.Builder(nodeSubmission.get("id").asInt(), nodeSubmission.get("created_at").asLong(), nodeSubmission.get("status_code").asInt())
 						.hackerId(nodeSubmission.get("hacker_id").asInt())
 						.status(nodeSubmission.get("status").asText())
 						.kind(nodeSubmission.get("kind").asText())
@@ -137,8 +140,6 @@ public enum DownloaderCore {
 						.score(nodeSubmission.get("score").asDouble())
 						.sourceCode(nodeSubmission.get("code").asText())
 						.build();
-
-		return cleanSub;
 	}
 
 	/**
