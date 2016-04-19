@@ -1,0 +1,609 @@
+{
+  "models": [
+	{
+	  "challenge": {
+		"name": "Candies",
+		"slug": "candies",
+		"created_at": 1460921246
+	  },
+	  "total": 2,
+	  "submissions": [
+		{
+		  "id": 19455550,
+		  "challenge_id": 106,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Accepted",
+		  "kind": "code",
+		  "created_at": 1460921246,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "2 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "50.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Candies",
+			"slug": "candies"
+		  },
+		  "inserttime": 1460921246
+		},
+		{
+		  "id": 19451908,
+		  "challenge_id": 106,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Accepted",
+		  "kind": "code",
+		  "created_at": 1460913056,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "2 days",
+		  "in_contest_bounds": true,
+		  "status_code": 2,
+		  "score": "50.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Candies",
+			"slug": "candies"
+		  },
+		  "inserttime": 1460913056
+		}
+	  ]
+	},
+	{
+	  "challenge": {
+		"name": "Circular Palindromes",
+		"slug": "circular-palindromes",
+		"created_at": 1460851332
+	  },
+	  "total": 3,
+	  "submissions": [
+		{
+		  "id": 19431149,
+		  "challenge_id": 15622,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Terminated due to timeout",
+		  "kind": "code",
+		  "created_at": 1460851332,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "3 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "43.46",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Circular Palindromes",
+			"slug": "circular-palindromes"
+		  },
+		  "inserttime": 1460851334
+		},
+		{
+		  "id": 19430932,
+		  "challenge_id": 15622,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Terminated due to timeout",
+		  "kind": "code",
+		  "created_at": 1460850484,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "3 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "43.46",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Circular Palindromes",
+			"slug": "circular-palindromes"
+		  },
+		  "inserttime": 1460850485
+		},
+		{
+		  "id": 19430860,
+		  "challenge_id": 15622,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Terminated due to timeout",
+		  "kind": "code",
+		  "created_at": 1460850229,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "3 days",
+		  "in_contest_bounds": true,
+		  "status_code": 2,
+		  "score": "43.46",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Circular Palindromes",
+			"slug": "circular-palindromes"
+		  },
+		  "inserttime": 1460850229
+		}
+	  ]
+	},
+	{
+	  "challenge": {
+		"name": "Fibonacci Modified",
+		"slug": "fibonacci-modified",
+		"created_at": 1460846503
+	  },
+	  "total": 5,
+	  "submissions": [
+		{
+		  "id": 19429866,
+		  "challenge_id": 4395,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Accepted",
+		  "kind": "code",
+		  "created_at": 1460846503,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "3 days",
+		  "in_contest_bounds": true,
+		  "status_code": 2,
+		  "score": "45.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Fibonacci Modified",
+			"slug": "fibonacci-modified"
+		  },
+		  "inserttime": 1460846507
+		},
+		{
+		  "id": 19429722,
+		  "challenge_id": 4395,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Wrong Answer",
+		  "kind": "code",
+		  "created_at": 1460845981,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "3 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "16.88",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Fibonacci Modified",
+			"slug": "fibonacci-modified"
+		  },
+		  "inserttime": 1460845984
+		},
+		{
+		  "id": 19429654,
+		  "challenge_id": 4395,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Wrong Answer",
+		  "kind": "code",
+		  "created_at": 1460845731,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "3 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "16.88",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Fibonacci Modified",
+			"slug": "fibonacci-modified"
+		  },
+		  "inserttime": 1460845733
+		},
+		{
+		  "id": 19429449,
+		  "challenge_id": 4395,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Wrong Answer",
+		  "kind": "code",
+		  "created_at": 1460845071,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "3 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "5.63",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Fibonacci Modified",
+			"slug": "fibonacci-modified"
+		  },
+		  "inserttime": 1460845072
+		},
+		{
+		  "id": 19429215,
+		  "challenge_id": 4395,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Wrong Answer",
+		  "kind": "code",
+		  "created_at": 1460844257,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "3 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "5.63",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Fibonacci Modified",
+			"slug": "fibonacci-modified"
+		  },
+		  "inserttime": 1460844257
+		}
+	  ]
+	},
+	{
+	  "challenge": {
+		"name": "Missing Numbers",
+		"slug": "missing-numbers",
+		"created_at": 1460738356
+	  },
+	  "total": 1,
+	  "submissions": [
+		{
+		  "id": 19390335,
+		  "challenge_id": 458,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Accepted",
+		  "kind": "code",
+		  "created_at": 1460738356,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "4 days",
+		  "in_contest_bounds": true,
+		  "status_code": 2,
+		  "score": "45.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Missing Numbers",
+			"slug": "missing-numbers"
+		  },
+		  "inserttime": 1460738356
+		}
+	  ]
+	},
+	{
+	  "challenge": {
+		"name": "Maximise Sum",
+		"slug": "maximise-sum",
+		"created_at": 1460728160
+	  },
+	  "total": 8,
+	  "submissions": [
+		{
+		  "id": 19385059,
+		  "challenge_id": 2619,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Wrong Answer",
+		  "kind": "code",
+		  "created_at": 1460728160,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "4 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "4.06",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Maximise Sum",
+			"slug": "maximise-sum"
+		  },
+		  "inserttime": 1460728165
+		},
+		{
+		  "id": 19384932,
+		  "challenge_id": 2619,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Wrong Answer",
+		  "kind": "code",
+		  "created_at": 1460727898,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "4 days",
+		  "in_contest_bounds": true,
+		  "status_code": 2,
+		  "score": "4.06",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Maximise Sum",
+			"slug": "maximise-sum"
+		  },
+		  "inserttime": 1460727902
+		},
+		{
+		  "id": 19384848,
+		  "challenge_id": 2619,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Wrong Answer",
+		  "kind": "code",
+		  "created_at": 1460727755,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "4 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "0.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Maximise Sum",
+			"slug": "maximise-sum"
+		  },
+		  "inserttime": 1460727758
+		},
+		{
+		  "id": 19379893,
+		  "challenge_id": 2619,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Compilation error",
+		  "kind": "code",
+		  "created_at": 1460717272,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "4 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "0.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Maximise Sum",
+			"slug": "maximise-sum"
+		  },
+		  "inserttime": 1460717275
+		},
+		{
+		  "id": 19379884,
+		  "challenge_id": 2619,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Compilation error",
+		  "kind": "code",
+		  "created_at": 1460717254,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "4 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "0.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Maximise Sum",
+			"slug": "maximise-sum"
+		  },
+		  "inserttime": 1460717257
+		}
+	  ]
+	},
+	{
+	  "challenge": {
+		"name": "Sherlock and Array",
+		"slug": "sherlock-and-array",
+		"created_at": 1460707072
+	  },
+	  "total": 2,
+	  "submissions": [
+		{
+		  "id": 19375204,
+		  "challenge_id": 2490,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Accepted",
+		  "kind": "code",
+		  "created_at": 1460707072,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "4 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "40.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Sherlock and Array",
+			"slug": "sherlock-and-array"
+		  },
+		  "inserttime": 1460707072
+		},
+		{
+		  "id": 19375118,
+		  "challenge_id": 2490,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Accepted",
+		  "kind": "code",
+		  "created_at": 1460706876,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "4 days",
+		  "in_contest_bounds": true,
+		  "status_code": 2,
+		  "score": "40.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Sherlock and Array",
+			"slug": "sherlock-and-array"
+		  },
+		  "inserttime": 1460706876
+		}
+	  ]
+	},
+	{
+	  "challenge": {
+		"name": "Counting Sort 3",
+		"slug": "countingsort3",
+		"created_at": 1460578684
+	  },
+	  "total": 1,
+	  "submissions": [
+		{
+		  "id": 19318999,
+		  "challenge_id": 445,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Accepted",
+		  "kind": "code",
+		  "created_at": 1460578684,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "6 days",
+		  "in_contest_bounds": true,
+		  "status_code": 2,
+		  "score": "30.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Counting Sort 3",
+			"slug": "countingsort3"
+		  },
+		  "inserttime": 1460578684
+		}
+	  ]
+	},
+	{
+	  "challenge": {
+		"name": "Counting Sort 2",
+		"slug": "countingsort2",
+		"created_at": 1460577959
+	  },
+	  "total": 2,
+	  "submissions": [
+		{
+		  "id": 19318603,
+		  "challenge_id": 435,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Accepted",
+		  "kind": "code",
+		  "created_at": 1460577959,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "6 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "30.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Counting Sort 2",
+			"slug": "countingsort2"
+		  },
+		  "inserttime": 1460577959
+		},
+		{
+		  "id": 19318542,
+		  "challenge_id": 435,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Accepted",
+		  "kind": "code",
+		  "created_at": 1460577862,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "6 days",
+		  "in_contest_bounds": true,
+		  "status_code": 2,
+		  "score": "30.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Counting Sort 2",
+			"slug": "countingsort2"
+		  },
+		  "inserttime": 1460577862
+		}
+	  ]
+	},
+	{
+	  "challenge": {
+		"name": "Counting Sort 1",
+		"slug": "countingsort1",
+		"created_at": 1460577752
+	  },
+	  "total": 1,
+	  "submissions": [
+		{
+		  "id": 19318482,
+		  "challenge_id": 433,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Accepted",
+		  "kind": "code",
+		  "created_at": 1460577752,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "6 days",
+		  "in_contest_bounds": true,
+		  "status_code": 2,
+		  "score": "30.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Counting Sort 1",
+			"slug": "countingsort1"
+		  },
+		  "inserttime": 1460577752
+		}
+	  ]
+	},
+	{
+	  "challenge": {
+		"name": "Lisa's Workbook",
+		"slug": "bear-and-workbook",
+		"created_at": 1460111379
+	  },
+	  "total": 2,
+	  "submissions": [
+		{
+		  "id": 19124711,
+		  "challenge_id": 17892,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Accepted",
+		  "kind": "code",
+		  "created_at": 1460111379,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "11 days",
+		  "in_contest_bounds": true,
+		  "status_code": 2,
+		  "score": "30.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Lisa's Workbook",
+			"slug": "bear-and-workbook"
+		  },
+		  "inserttime": 1460111380
+		},
+		{
+		  "id": 19124565,
+		  "challenge_id": 17892,
+		  "contest_id": 1,
+		  "hacker_id": 1022707,
+		  "status": "Wrong Answer",
+		  "kind": "code",
+		  "created_at": 1460111058,
+		  "language": "java",
+		  "hacker_username": null,
+		  "time_ago": "11 days",
+		  "in_contest_bounds": true,
+		  "status_code": 1,
+		  "score": "12.0",
+		  "is_preliminary_score": null,
+		  "challenge": {
+			"name": "Lisa's Workbook",
+			"slug": "bear-and-workbook"
+		  },
+		  "inserttime": 1460111058
+		}
+	  ]
+	}
+  ],
+  "total": 194
+}

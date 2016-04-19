@@ -1,0 +1,13 @@
+{
+  "model": {
+	"id": 100,
+	"hacker_id": 222,
+	"language": "java",
+	"code": "import something\nexport something",
+	"status": "Accepted",
+	"created_at": 999919,
+	"status_code": 1,
+	"kind": "code",
+	"score": 20.0
+  }
+}

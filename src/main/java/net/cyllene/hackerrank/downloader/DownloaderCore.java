@@ -13,6 +13,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * URL examples:
@@ -58,42 +62,31 @@ public enum DownloaderCore {
 		httpClient = client;
 	}
 
-	/*
-	public List<HRChallenge> getListOfChallenges() {
-		// https://www.hackerrank.com/rest/contests/master/submissions/grouped?offset=0&limit=1
-		List<HRChallenge> result = new ArrayList<>();
+	/**
+	 * @return TreeMap with IDs of challenges and submissions
+	 * @throws IOException
+	 */
+	public Map getStructure() throws IOException {
+		Map<Integer, List<Integer>> result = new TreeMap<>();
 
-		String body = getJsonStringFrom("https://www.hackerrank.com/rest/contests/master/submissions/grouped?offset=0&limit=5");
-
+		String body = getJsonStringFrom("/rest/contests/master/submissions/grouped?limit=3");
 		ObjectMapper mapper = new ObjectMapper();
 
-		JsonNode nodeRoot;
-		try {
-			nodeRoot = mapper.readValue(body.getBytes(), JsonNode.class);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-		for (JsonNode nodeModels : nodeRoot.get("models")) {
-			for (JsonNode nodeSubmission : nodeModels.get("submissions")) {
-				System.out.println(nodeSubmission);
-				HRSubmission cleanSub =
-						new HRSubmission.Builder(nodeSubmission.get("id").asInt(), nodeSubmission.get("created_at").asLong(), nodeSubmission.get("status_code").asInt())
-								.hackerId(nodeSubmission.get("hacker_id").asInt())
-								.status(nodeSubmission.get("status").asText())
-								.kind(nodeSubmission.get("kind").asText())
-								.language(nodeSubmission.get("language").asText())
-								.score(nodeSubmission.get("score").asDouble())
-								.build();
+		JsonNode jnRoot = mapper.readValue(body.getBytes(), JsonNode.class);
 
-				System.out.println(cleanSub);
-				result.add(cleanSub);
+		for (JsonNode jnChallenge : jnRoot.get("models")) {
+			List<Integer> currentChallengeSubmissions = new LinkedList<>();
+			int ci = 0;
+			for (JsonNode jnSubmission : jnChallenge.get("submissions")) {
+				currentChallengeSubmissions.add(jnSubmission.get("id").asInt());
+				ci = jnSubmission.get("challenge_id").asInt();
 			}
+			result.put(ci, currentChallengeSubmissions);
 		}
 
+		System.out.println(result);
 		return result;
 	}
-	*/
 
 	/**
 	 * Returns an assembled {@link HRSubmission} object
@@ -102,12 +95,12 @@ public enum DownloaderCore {
 	 * @return {@link HRChallenge} object created from JSON returned by server
 	 */
 	public HRChallenge getChallengeDetails(int id) throws IOException {
-		String body = getJsonStringFrom(HOST + "/rest/contests/master/challenges/" + id);
+		String body = getJsonStringFrom("/rest/contests/master/challenges/" + id);
 
 		ObjectMapper mapper = new ObjectMapper();
-		JsonNode nodeRoot = mapper.readValue(body.getBytes(), JsonNode.class);
+		JsonNode jnRoot = mapper.readValue(body.getBytes(), JsonNode.class);
 
-		JsonNode nodeSubmission = nodeRoot.get("model");
+		JsonNode jnSubmission = jnRoot.get("model");
 
 		HRChallenge cleanCh = new HRChallenge();
 		return cleanCh;
@@ -119,26 +112,21 @@ public enum DownloaderCore {
 	 * @param id Submission id, which is passed to server in URL
 	 * @return {@link HRSubmission} object created from JSON returned by server
 	 */
-	public HRSubmission getSubmissionDetails(int id) {
-		String body = getJsonStringFrom(HOST + "/rest/contests/master/submissions/" + id);
+	public HRSubmission getSubmissionDetails(int id) throws IOException {
+		String body = getJsonStringFrom("/rest/contests/master/submissions/" + id);
 
 		ObjectMapper mapper = new ObjectMapper();
-		JsonNode nodeRoot;
-		try {
-			nodeRoot = mapper.readValue(body.getBytes(), JsonNode.class);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-		JsonNode nodeSubmission = nodeRoot.get("model");
+		JsonNode jnRoot = mapper.readValue(body.getBytes(), JsonNode.class);
 
-		return new HRSubmission.Builder(nodeSubmission.get("id").asInt(), nodeSubmission.get("created_at").asLong(), nodeSubmission.get("status_code").asInt())
-						.hackerId(nodeSubmission.get("hacker_id").asInt())
-						.status(nodeSubmission.get("status").asText())
-						.kind(nodeSubmission.get("kind").asText())
-						.language(nodeSubmission.get("language").asText())
-						.score(nodeSubmission.get("score").asDouble())
-						.sourceCode(nodeSubmission.get("code").asText())
+		JsonNode jnSubmission = jnRoot.get("model");
+
+		return new HRSubmission.Builder(jnSubmission.get("id").asInt(), jnSubmission.get("created_at").asLong(), jnSubmission.get("status_code").asInt())
+				.hackerId(jnSubmission.get("hacker_id").asInt())
+				.status(jnSubmission.get("status").asText())
+				.kind(jnSubmission.get("kind").asText())
+				.language(jnSubmission.get("language").asText())
+				.score(jnSubmission.get("score").asDouble())
+				.sourceCode(jnSubmission.get("code").asText())
 						.build();
 	}
 
@@ -153,7 +141,7 @@ public enum DownloaderCore {
 
 		String body = null;
 		try {
-			body = handler.handleResponse(authenticateAndGetURL(url));
+			body = handler.handleResponse(authenticateAndGetURL(HOST + url));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

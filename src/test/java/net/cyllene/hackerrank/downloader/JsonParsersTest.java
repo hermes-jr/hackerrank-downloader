@@ -7,11 +7,14 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Random;
+import java.util.Scanner;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -23,23 +26,29 @@ public class JsonParsersTest {
 	@Mock
 	private HttpClient mockHttpClient;
 
+	@Before
+	public void initMocks() {
+		MockitoAnnotations.initMocks(this);
+	}
+
 	/**
 	 * Test authenticateAndGetURL(String url) with a mock server response
 	 */
 	@Test
 	public void testChallengeDescriptionParser() throws Exception {
-		MockitoAnnotations.initMocks(this);
+		//MockitoAnnotations.initMocks(this);
 
-		String responseBody = " {\"model\":{\"id\":100,\"hacker_id\":222,\"language\":\"java\",\"code\":\"import something\\nexport something\", \"status\":\"Accepted\",\"created_at\":999919,\"status_code\":1,\"kind\":\"code\",\"score\":20.0}}";
+		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream("/test_sample_submission.json"));
+		String responseBody = fakeData.nextLine();
+
 		HttpResponse response = prepareResponse(200, responseBody);
 
-		//mockHttpClient = mock(HttpClient.class);
 		when(mockHttpClient.execute(any(HttpUriRequest.class)))
 				.thenReturn(response);
 
 		DownloaderCore dc = DownloaderCore.INSTANCE;
 		dc.setHttpClient(mockHttpClient);
-		HRSubmission candidate = dc.getSubmissionDetails(17813507);
+		HRSubmission candidate = dc.getSubmissionDetails(new Random().nextInt());
 
 		HRSubmission reference = new HRSubmission.Builder(100, 999919L, 1)
 				.language("java")
@@ -56,6 +65,26 @@ public class JsonParsersTest {
 		assertThat(candidate, equalTo(reference));
 	}
 
+	/**
+	 * Test authenticateAndGetURL(String url) with a mock server response
+	 */
+	@Test
+	public void getStructure() throws Exception {
+		//MockitoAnnotations.initMocks(this);
+
+		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream("/test_sample_list_of_submissions.json"));
+		String responseBody = fakeData.nextLine();
+
+		HttpResponse response = prepareResponse(200, responseBody);
+
+		when(mockHttpClient.execute(any(HttpUriRequest.class)))
+				.thenReturn(response);
+
+		DownloaderCore dc = DownloaderCore.INSTANCE;
+		dc.setHttpClient(mockHttpClient);
+		dc.getStructure();
+
+	}
 
 	private HttpResponse prepareResponse(int expectedResponseStatus,
 										 String expectedResponseBody) {

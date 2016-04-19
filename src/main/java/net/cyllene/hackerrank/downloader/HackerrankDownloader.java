@@ -12,8 +12,6 @@ public class HackerrankDownloader {
 
 	public static void main(String[] args) {
 		DownloaderCore dc = DownloaderCore.INSTANCE;
-		HRSubmission submission = dc.getSubmissionDetails(17813507);
-		System.out.println(submission);
 	}
 
 	private static String getSecretFromConfig() {

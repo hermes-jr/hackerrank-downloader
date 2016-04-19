@@ -7,5 +7,4 @@ public class HRChallenge {
 	private String name;
 	private String slug;
 	private List<HRChallengeDescription> descriptions;
-
 }

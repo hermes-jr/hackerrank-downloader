@@ -27,6 +27,15 @@ public class HRChallengeDescription {
 		return language;
 	}
 
+	@Override
+	public String toString() {
+		return "HRChallengeDescription{" +
+				"language='" + language + '\'' +
+				", body='" + body + '\'' +
+				", bodyHTML='" + bodyHTML + '\'' +
+				'}';
+	}
+
 	public static class Builder {
 		private String language;
 		private String body;
