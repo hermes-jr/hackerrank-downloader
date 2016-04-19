@@ -13,10 +13,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * URL examples:
@@ -89,6 +86,42 @@ public enum DownloaderCore {
 	}
 
 	/**
+	 * Returns a list of translations and a description
+	 *
+	 * @param jsonString raw challenge details data to parse
+	 * @return List<HRChallengeDescription> object created from JSON returned by server,
+	 * item 0 always exists (English version)
+	 */
+	public List getChallengeDescriptions(String jsonString) throws IOException {
+		List<HRChallengeDescription> result = new ArrayList<>();
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		JsonNode jnRoot = mapper.readValue(jsonString.getBytes(), JsonNode.class);
+		JsonNode jnChallenge = jnRoot.get("model");
+
+		HRChallengeDescription desc = new HRChallengeDescription.Builder()
+				.language("English")
+				.body(jnChallenge.get("body").asText())
+				.bodyHTML(jnChallenge.get("body_html").asText())
+				.build();
+		result.add(desc);
+
+		if (jnChallenge.hasNonNull("available_translations")) {
+			for (JsonNode jnTranslation : jnChallenge.get("available_translations")) {
+				desc = new HRChallengeDescription.Builder()
+						.language(jnTranslation.get("language").asText())
+						.body(jnTranslation.get("body").asText())
+						.bodyHTML(jnTranslation.get("body_html").asText())
+						.build();
+				result.add(desc);
+			}
+		}
+
+		return result;
+	}
+
+	/**
 	 * Returns an assembled {@link HRSubmission} object
 	 *
 	 * @param id Challenge id, which is passed to server in URL
@@ -100,9 +133,16 @@ public enum DownloaderCore {
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode jnRoot = mapper.readValue(body.getBytes(), JsonNode.class);
 
-		JsonNode jnSubmission = jnRoot.get("model");
+		JsonNode jnChallenge = jnRoot.get("model");
 
 		HRChallenge cleanCh = new HRChallenge();
+
+		cleanCh.setSlug(jnChallenge.get("slug").asText());
+		cleanCh.setName(jnChallenge.get("name").asText());
+//		cleanCh.setCtime(Long.parseLong(jnChallenge.get("created_at_epoch").asText()));
+		cleanCh.setDescriptions(getChallengeDescriptions(body));
+		cleanCh.setSubmissions(new ArrayList<HRSubmission>());
+
 		return cleanCh;
 	}
 
@@ -127,11 +167,11 @@ public enum DownloaderCore {
 				.language(jnSubmission.get("language").asText())
 				.score(jnSubmission.get("score").asDouble())
 				.sourceCode(jnSubmission.get("code").asText())
-						.build();
+				.build();
 	}
 
 	/**
-	 * Returns an assembled HRSubmission object
+	 * Returns body from GET request to specified URL using Cookie authentication
 	 *
 	 * @param url The url argument must specify an absolute URL
 	 * @return JSON string returned by server from supplied address

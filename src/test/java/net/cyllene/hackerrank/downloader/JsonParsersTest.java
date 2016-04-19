@@ -13,11 +13,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
@@ -36,10 +39,7 @@ public class JsonParsersTest {
 	 */
 	@Test
 	public void testChallengeDescriptionParser() throws Exception {
-		//MockitoAnnotations.initMocks(this);
-
-		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream("/test_sample_submission.json"));
-		String responseBody = fakeData.useDelimiter("\\Z").next();
+		String responseBody = getFakeData("/test_sample_submission.json");
 
 		HttpResponse response = prepareResponse(200, responseBody);
 
@@ -70,10 +70,7 @@ public class JsonParsersTest {
 	 */
 	@Test
 	public void getStructure() throws Exception {
-		//MockitoAnnotations.initMocks(this);
-
-		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream("/test_sample_list_of_submissions.json"));
-		String responseBody = fakeData.useDelimiter("\\Z").next();
+		String responseBody = getFakeData("/test_sample_list_of_submissions.json");
 
 		HttpResponse response = prepareResponse(200, responseBody);
 
@@ -82,8 +79,41 @@ public class JsonParsersTest {
 
 		DownloaderCore dc = DownloaderCore.INSTANCE;
 		dc.setHttpClient(mockHttpClient);
-		dc.getStructure();
 
+		Map<Integer, List<Integer>> result = dc.getStructure();
+		// There are 10 valid challenges in the sample json file
+		assertThat(result.size(), equalTo(10));
+		assertTrue(result.containsKey(435));
+	}
+
+	@Test
+	public void getChallengeDetails() throws Exception {
+		String responseBody = getFakeData("/test_sample_challenge_details.json");
+
+		HttpResponse response = prepareResponse(200, responseBody);
+
+		when(mockHttpClient.execute(any(HttpUriRequest.class)))
+				.thenReturn(response);
+
+		DownloaderCore dc = DownloaderCore.INSTANCE;
+		dc.setHttpClient(mockHttpClient);
+
+		HRChallenge challenge = dc.getChallengeDetails(new Random().nextInt());
+
+		System.out.println(challenge);
+	}
+
+	@Test
+	public void getChallengeDescriptions() throws Exception {
+		String jsonStr = getFakeData("/test_sample_challenge_details.json");
+
+		DownloaderCore dc = DownloaderCore.INSTANCE;
+		List z = dc.getChallengeDescriptions(jsonStr);
+
+		// There are 4 valid descriptions in the sample json file
+		System.out.println(z);
+
+		assertThat(z.size(), equalTo(4));
 	}
 
 	private HttpResponse prepareResponse(int expectedResponseStatus,
@@ -97,5 +127,10 @@ public class JsonParsersTest {
 			throw new IllegalArgumentException(e);
 		}
 		return response;
+	}
+
+	private String getFakeData(String path) {
+		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream(path));
+		return fakeData.useDelimiter("\\Z").next();
 	}
 }
