@@ -64,19 +64,19 @@ public enum DownloaderCore {
 	 * @throws IOException
 	 */
 	public Map getStructure() throws IOException {
-		Map<Integer, List<Integer>> result = new TreeMap<>();
+		Map<String, List<Integer>> result = new TreeMap<>();
 
-		String body = getJsonStringFrom("/rest/contests/master/submissions/grouped?limit=3");
+		String body = getJsonStringFrom("/rest/contests/master/submissions/grouped?limit=4");
 		ObjectMapper mapper = new ObjectMapper();
 
 		JsonNode jnRoot = mapper.readValue(body.getBytes(), JsonNode.class);
 
 		for (JsonNode jnChallenge : jnRoot.get("models")) {
 			List<Integer> currentChallengeSubmissions = new LinkedList<>();
-			int ci = 0;
+			String ci = jnChallenge.get("challenge").get("slug").asText();
 			for (JsonNode jnSubmission : jnChallenge.get("submissions")) {
 				currentChallengeSubmissions.add(jnSubmission.get("id").asInt());
-				ci = jnSubmission.get("challenge_id").asInt();
+				//ci = jnSubmission.get("slug").asText();
 			}
 			result.put(ci, currentChallengeSubmissions);
 		}
@@ -102,8 +102,8 @@ public enum DownloaderCore {
 
 		HRChallengeDescription desc = new HRChallengeDescription.Builder()
 				.language("English")
-				.body(jnChallenge.get("body").asText())
-				.bodyHTML(jnChallenge.get("body_html").asText())
+				.body(jnChallenge.get("body").asText().replaceAll("\n", System.lineSeparator()))
+				.bodyHTML(jnChallenge.get("body_html").asText().replaceAll("\n", System.lineSeparator()))
 				.build();
 		result.add(desc);
 
@@ -111,8 +111,8 @@ public enum DownloaderCore {
 			for (JsonNode jnTranslation : jnChallenge.get("available_translations")) {
 				desc = new HRChallengeDescription.Builder()
 						.language(jnTranslation.get("language").asText())
-						.body(jnTranslation.get("body").asText())
-						.bodyHTML(jnTranslation.get("body_html").asText())
+						.body(jnTranslation.get("body").asText().replaceAll("\n", System.lineSeparator()))
+						.bodyHTML(jnTranslation.get("body_html").asText().replaceAll("\n", System.lineSeparator()))
 						.build();
 				result.add(desc);
 			}
@@ -146,6 +146,24 @@ public enum DownloaderCore {
 		return cleanCh;
 	}
 
+	public HRChallenge getChallengeDetails(String slug) throws IOException {
+		String body = getJsonStringFrom("/rest/contests/master/challenges/" + slug);
+
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode jnRoot = mapper.readValue(body.getBytes(), JsonNode.class);
+
+		JsonNode jnChallenge = jnRoot.get("model");
+
+		HRChallenge cleanCh = new HRChallenge();
+
+		cleanCh.setSlug(jnChallenge.get("slug").asText());
+		cleanCh.setName(jnChallenge.get("name").asText());
+		cleanCh.setDescriptions(getChallengeDescriptions(body));
+		cleanCh.setSubmissions(new ArrayList<HRSubmission>());
+
+		return cleanCh;
+	}
+
 	/**
 	 * Returns an assembled {@link HRSubmission} object
 	 *
@@ -166,7 +184,7 @@ public enum DownloaderCore {
 				.kind(jnSubmission.get("kind").asText())
 				.language(jnSubmission.get("language").asText())
 				.score(jnSubmission.get("score").asDouble())
-				.sourceCode(jnSubmission.get("code").asText())
+				.sourceCode(jnSubmission.get("code").asText().replaceAll("\n", System.lineSeparator()))
 				.build();
 	}
 
@@ -189,6 +207,7 @@ public enum DownloaderCore {
 	}
 
 	private static HttpResponse authenticateAndGetURL(String url) throws IOException {
+		System.out.println("Getting: " + url);
 		return httpClient.execute(new HttpGet(url));
 	}
 

@@ -20,15 +20,32 @@ public class HackerrankDownloader {
 		List<HRChallenge> challenges = new LinkedList<>();
 
 		try {
-			Map<Integer, List<Integer>> structure = dc.getStructure();
-			for (Entry<Integer, List<Integer>> entry : structure.entrySet()) {
-				int challengeId = entry.getKey();
-				HRChallenge currentChallenge = dc.getChallengeDetails(challengeId);
+			Map<String, List<Integer>> structure = dc.getStructure();
+			for (Entry<String, List<Integer>> entry : structure.entrySet()) {
+				String challengeSlug = entry.getKey();
+				HRChallenge currentChallenge = dc.getChallengeDetails(challengeSlug);
+
+				// FIXME: I'll put it here for now
+				final String sChallengePath = "./hr_downloaded_solutions/" + currentChallenge.getSlug();
+				final String sSolutionPath = sChallengePath + "/accepted_solutions";
+				final String sDescriptionPath = sChallengePath + "/problem_description";
+
+				Files.createDirectories(Paths.get(sDescriptionPath));
+				Files.createDirectories(Paths.get(sSolutionPath));
+				Files.write(Paths.get(sDescriptionPath + "/English.txt"), currentChallenge.getDescriptions().get(0).getBody().getBytes());
+				//Files.write(Paths.get(sDescriptionPath + "/English.html"), currentChallenge.getDescriptions().get(0).getBodyHTML().getBytes());
+
 				for (Integer submissionId : entry.getValue()) {
 					HRSubmission submission = dc.getSubmissionDetails(submissionId);
-					// FIXME: should find a better place to filter
+					//currentChallenge.getSubmissions().add(submission); // Add every solution to result (failed attempts too)
+
+					// FIXME: I'll put it here for now
 					if (submission.getStatus().equalsIgnoreCase("Accepted")) {
 						currentChallenge.getSubmissions().add(submission);
+
+						Files.write(Paths.get(
+								String.format("%s/%d.%s", sSolutionPath, submission.getId(), submission.getLanguage())),
+								submission.getSourceCode().getBytes());
 					}
 				}
 
@@ -38,9 +55,6 @@ public class HackerrankDownloader {
 			System.err.println("Fatal Error: Unable to parse or download data.");
 			e.printStackTrace();
 		}
-
-		System.out.println(challenges);
-
 	}
 
 	private static String getSecretFromConfig() {
