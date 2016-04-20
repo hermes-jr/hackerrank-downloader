@@ -1,5 +1,7 @@
 package net.cyllene.hackerrank.downloader;
 
+import org.apache.commons.codec.Charsets;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class HackerrankDownloader {
+	private static final int NUMBER_OF_ITEMS_TO_DOWNLOAD = 10;
 	static final String SECRET_KEY = getSecretFromConfig();
 
 	public static void main(String[] args) {
@@ -19,16 +22,17 @@ public class HackerrankDownloader {
 
 		List<HRChallenge> challenges = new LinkedList<>();
 
+		// Download everything first
 		try {
-			Map<String, List<Integer>> structure = dc.getStructure(0, 10);
+			Map<String, List<Integer>> structure = dc.getStructure(0, NUMBER_OF_ITEMS_TO_DOWNLOAD);
 			for (Entry<String, List<Integer>> entry : structure.entrySet()) {
 				String challengeSlug = entry.getKey();
 				HRChallenge currentChallenge = dc.getChallengeDetails(challengeSlug);
 
 				for (Integer submissionId : entry.getValue()) {
 					HRSubmission submission = dc.getSubmissionDetails(submissionId);
-					//currentChallenge.getSubmissions().add(submission); // Add every solution to result (failed attempts too)
 
+					// TODO: probably should move filtering logic elsewhere(getStructure, maybe)
 					if (submission.getStatus().equalsIgnoreCase("Accepted")) {
 						currentChallenge.getSubmissions().add(submission);
 					}
@@ -43,7 +47,6 @@ public class HackerrankDownloader {
 
 		// Now dump all data to disk
 		try {
-
 			for (HRChallenge currentChallenge : challenges) {
 				if (currentChallenge.getSubmissions().isEmpty())
 					continue;
@@ -54,16 +57,21 @@ public class HackerrankDownloader {
 
 				Files.createDirectories(Paths.get(sDescriptionPath));
 				Files.createDirectories(Paths.get(sSolutionPath));
-				Files.write(Paths.get(sDescriptionPath + "/english.txt"), currentChallenge.getDescriptions().get(0).getBody().getBytes());
+
+				// FIXME: this should be done the other way
+				String plainBody = currentChallenge.getDescriptions().get(0).getBody();
+				if (!plainBody.equals("null")) {
+					Files.write(Paths.get(sDescriptionPath + "/english.txt"), plainBody.getBytes(Charsets.UTF_8));
+				}
 
 				String htmlBody = currentChallenge.getDescriptions().get(0).getBodyHTML();
 				String temporaryHtmlTemplate = "<html></body>" + htmlBody + "</body></html>";
-				Files.write(Paths.get(sDescriptionPath + "/english.html"), temporaryHtmlTemplate.getBytes());
+				Files.write(Paths.get(sDescriptionPath + "/english.html"), temporaryHtmlTemplate.getBytes(Charsets.UTF_8));
 
 				for (HRSubmission submission : currentChallenge.getSubmissions()) {
 					Files.write(Paths.get(
 							String.format("%s/%d.%s", sSolutionPath, submission.getId(), submission.getLanguage())),
-							submission.getSourceCode().getBytes());
+							submission.getSourceCode().getBytes(Charsets.UTF_8));
 				}
 
 			}
@@ -73,6 +81,14 @@ public class HackerrankDownloader {
 		}
 	}
 
+	/**
+	 * Gets a secret key from configuration file in user.home.
+	 * The secret key is a _hackerrank_session variable stored in cookies by server.
+	 * To simplify things, no login logic is present in this program, it means
+	 * you should login somewhere else and then provide this value in the config.
+	 *
+	 * @return String representing a _hackerrank_session id, about 430 characters long.
+	 */
 	private static String getSecretFromConfig() {
 		final String confPathStr = System.getProperty("user.home") + File.separator + ".hackerrank-downloader-key";
 		final Path confPath = Paths.get(confPathStr);
@@ -84,7 +100,6 @@ public class HackerrankDownloader {
 					+ "\nFile might be missing, empty or inaccessible by user."
 					+ "\nIt must contain a single ASCII line, a value of \"_hackerrank_session\" Cookie variable,"
 					+ "\nwhich length is about 430 characters.");
-			//e.printStackTrace();
 			System.exit(1);
 		}
 
