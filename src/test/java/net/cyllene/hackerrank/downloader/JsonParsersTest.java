@@ -53,7 +53,7 @@ public class JsonParsersTest {
 		HRSubmission reference = new HRSubmission.Builder(100, 999919L, 1)
 				.language("java")
 				.hackerId(222)
-				.sourceCode("import something\nexport something")
+				.sourceCode("import something\nexport something".replaceAll("\n", System.lineSeparator()))
 				.status("Accepted")
 				.kind("code")
 				.score(20.0)
@@ -80,10 +80,10 @@ public class JsonParsersTest {
 		DownloaderCore dc = DownloaderCore.INSTANCE;
 		dc.setHttpClient(mockHttpClient);
 
-		Map<Integer, List<Integer>> result = dc.getStructure();
+		Map<String, List<Integer>> result = dc.getStructure(0, 10);
 		// There are 10 valid challenges in the sample json file
 		assertThat(result.size(), equalTo(10));
-		assertTrue(result.containsKey(435));
+		assertTrue(result.containsKey("maximise-sum"));
 	}
 
 	@Test

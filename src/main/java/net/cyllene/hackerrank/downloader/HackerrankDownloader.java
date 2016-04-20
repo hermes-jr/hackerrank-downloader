@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class HackerrankDownloader {
-	public static final String SECRET_KEY = getSecretFromConfig();
+	static final String SECRET_KEY = getSecretFromConfig();
 
 	public static void main(String[] args) {
 		DownloaderCore dc = DownloaderCore.INSTANCE;
@@ -20,32 +20,17 @@ public class HackerrankDownloader {
 		List<HRChallenge> challenges = new LinkedList<>();
 
 		try {
-			Map<String, List<Integer>> structure = dc.getStructure();
+			Map<String, List<Integer>> structure = dc.getStructure(0, 10);
 			for (Entry<String, List<Integer>> entry : structure.entrySet()) {
 				String challengeSlug = entry.getKey();
 				HRChallenge currentChallenge = dc.getChallengeDetails(challengeSlug);
-
-				// FIXME: I'll put it here for now
-				final String sChallengePath = "./hr_downloaded_solutions/" + currentChallenge.getSlug();
-				final String sSolutionPath = sChallengePath + "/accepted_solutions";
-				final String sDescriptionPath = sChallengePath + "/problem_description";
-
-				Files.createDirectories(Paths.get(sDescriptionPath));
-				Files.createDirectories(Paths.get(sSolutionPath));
-				Files.write(Paths.get(sDescriptionPath + "/English.txt"), currentChallenge.getDescriptions().get(0).getBody().getBytes());
-				//Files.write(Paths.get(sDescriptionPath + "/English.html"), currentChallenge.getDescriptions().get(0).getBodyHTML().getBytes());
 
 				for (Integer submissionId : entry.getValue()) {
 					HRSubmission submission = dc.getSubmissionDetails(submissionId);
 					//currentChallenge.getSubmissions().add(submission); // Add every solution to result (failed attempts too)
 
-					// FIXME: I'll put it here for now
 					if (submission.getStatus().equalsIgnoreCase("Accepted")) {
 						currentChallenge.getSubmissions().add(submission);
-
-						Files.write(Paths.get(
-								String.format("%s/%d.%s", sSolutionPath, submission.getId(), submission.getLanguage())),
-								submission.getSourceCode().getBytes());
 					}
 				}
 
@@ -54,6 +39,37 @@ public class HackerrankDownloader {
 		} catch (IOException e) {
 			System.err.println("Fatal Error: Unable to parse or download data.");
 			e.printStackTrace();
+		}
+
+		// Now dump all data to disk
+		try {
+
+			for (HRChallenge currentChallenge : challenges) {
+				if (currentChallenge.getSubmissions().isEmpty())
+					continue;
+
+				final String sChallengePath = "./hr_downloaded_solutions/" + currentChallenge.getSlug();
+				final String sSolutionPath = sChallengePath + "/accepted_solutions";
+				final String sDescriptionPath = sChallengePath + "/problem_description";
+
+				Files.createDirectories(Paths.get(sDescriptionPath));
+				Files.createDirectories(Paths.get(sSolutionPath));
+				Files.write(Paths.get(sDescriptionPath + "/english.txt"), currentChallenge.getDescriptions().get(0).getBody().getBytes());
+
+				String htmlBody = currentChallenge.getDescriptions().get(0).getBodyHTML();
+				String temporaryHtmlTemplate = "<html></body>" + htmlBody + "</body></html>";
+				Files.write(Paths.get(sDescriptionPath + "/english.html"), temporaryHtmlTemplate.getBytes());
+
+				for (HRSubmission submission : currentChallenge.getSubmissions()) {
+					Files.write(Paths.get(
+							String.format("%s/%d.%s", sSolutionPath, submission.getId(), submission.getLanguage())),
+							submission.getSourceCode().getBytes());
+				}
+
+			}
+		} catch (IOException e) {
+			System.err.println("Fatal Error: couldn't dump data to disk.");
+			System.exit(1);
 		}
 	}
 

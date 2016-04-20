@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -27,7 +28,7 @@ import java.util.*;
 /**
  * Singleton {@link DownloaderCore} implemented as enum
  */
-public enum DownloaderCore {
+enum DownloaderCore {
 	INSTANCE;
 
 	private static HttpClient httpClient;
@@ -47,7 +48,9 @@ public enum DownloaderCore {
 
 		RequestConfig customRequestConfig = RequestConfig.custom()
 				.setContentCompressionEnabled(true)
+				.setCookieSpec(CookieSpecs.STANDARD)
 				.build();
+
 
 		httpClient = HttpClientBuilder.create()
 				.setDefaultRequestConfig(customRequestConfig)
@@ -63,10 +66,10 @@ public enum DownloaderCore {
 	 * @return TreeMap with IDs of challenges and submissions
 	 * @throws IOException
 	 */
-	public Map getStructure() throws IOException {
+	public Map getStructure(int offset, int limit) throws IOException {
 		Map<String, List<Integer>> result = new TreeMap<>();
 
-		String body = getJsonStringFrom("/rest/contests/master/submissions/grouped?limit=4");
+		String body = getJsonStringFrom("/rest/contests/master/submissions/grouped?offset=" + offset + "&limit=" + limit);
 		ObjectMapper mapper = new ObjectMapper();
 
 		JsonNode jnRoot = mapper.readValue(body.getBytes(), JsonNode.class);
@@ -81,7 +84,6 @@ public enum DownloaderCore {
 			result.put(ci, currentChallengeSubmissions);
 		}
 
-		System.out.println(result);
 		return result;
 	}
 
