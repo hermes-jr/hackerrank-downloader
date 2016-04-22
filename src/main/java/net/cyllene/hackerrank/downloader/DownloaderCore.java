@@ -130,22 +130,7 @@ enum DownloaderCore {
 	 * @return {@link HRChallenge} object created from JSON returned by server
 	 */
 	public HRChallenge getChallengeDetails(int id) throws IOException {
-		String body = getJsonStringFrom("/rest/contests/master/challenges/" + id);
-
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode jnRoot = mapper.readValue(body.getBytes(), JsonNode.class);
-
-		JsonNode jnChallenge = jnRoot.get("model");
-
-		HRChallenge cleanCh = new HRChallenge();
-
-		cleanCh.setSlug(jnChallenge.get("slug").asText());
-		cleanCh.setName(jnChallenge.get("name").asText());
-//		cleanCh.setCtime(Long.parseLong(jnChallenge.get("created_at_epoch").asText()));
-		cleanCh.setDescriptions(getChallengeDescriptions(body));
-		cleanCh.setSubmissions(new ArrayList<HRSubmission>());
-
-		return cleanCh;
+		return getChallengeDetails("" + id);
 	}
 
 	public HRChallenge getChallengeDetails(String slug) throws IOException {
