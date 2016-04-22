@@ -1,6 +1,6 @@
 package net.cyllene.hackerrank.downloader;
 
-import org.apache.commons.codec.Charsets;
+import org.apache.commons.cli.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,21 +8,29 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 public class HackerrankDownloader {
 	private static final int NUMBER_OF_ITEMS_TO_DOWNLOAD = 10;
 	static final String SECRET_KEY = getSecretFromConfig();
 
 	public static void main(String[] args) {
+		System.out.println(Arrays.toString(args));
+		try {
+			setupCLI(args);
+		} catch (ParseException e) {
+			System.err.println("Fatal Error: failed to parse command line arguments.");
+			System.exit(1);
+		}
+
 		DownloaderCore dc = DownloaderCore.INSTANCE;
 
 		List<HRChallenge> challenges = new LinkedList<>();
 
 		// Download everything first
+		/*
 		try {
 			Map<String, List<Integer>> structure = dc.getStructure(0, NUMBER_OF_ITEMS_TO_DOWNLOAD);
 			for (Entry<String, List<Integer>> entry : structure.entrySet()) {
@@ -79,6 +87,17 @@ public class HackerrankDownloader {
 			System.err.println("Fatal Error: couldn't dump data to disk.");
 			System.exit(1);
 		}
+		*/
+	}
+
+	private static void setupCLI(String[] args) throws ParseException {
+		final Options options = new Options();
+		options.addOption("t", true, "Setup some shit");
+		options.addOption("v", false, "Be verbose");
+		final CommandLineParser parser = new DefaultParser();
+		final CommandLine cmd = parser.parse(options, args);
+
+		System.out.println(cmd.getOptionValue("t"));
 	}
 
 	/**
