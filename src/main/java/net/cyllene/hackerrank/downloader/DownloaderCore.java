@@ -17,11 +17,11 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * URL examples:
+ * URLs:
  * 'https://www.hackerrank.com/rest/contests/master/submissions/grouped?offset=0&limit=1'
  * 'https://www.hackerrank.com/rest/contests/master/submissions/grouped?limit=99999'
  * 'https://www.hackerrank.com/rest/contests/master/submissions/17813507'
- * 'https://www.hackerrank.com/rest/contests/master/challenges/102'
+ * 'https://www.hackerrank.com/rest/contests/master/challenges/101'
  * 'https://www.hackerrank.com/rest/contests/master/challenges/some-slug'
  */
 
@@ -30,19 +30,15 @@ import java.util.*;
  */
 enum DownloaderCore {
 	INSTANCE;
-
 	private static HttpClient httpClient;
-	private static final String DOMAIN = "www.hackerrank.com";
-	private static final String HOST = "https://" + DOMAIN;
-	private static final String SECRET_COOKIE_ID = "_hackerrank_session";
 
 	/**
 	 * "Fake" constructor
 	 */
 	static {
 		BasicCookieStore cookieStore = new BasicCookieStore();
-		BasicClientCookie cookie = new BasicClientCookie(SECRET_COOKIE_ID, HackerrankDownloader.SECRET_KEY);
-		cookie.setDomain(DOMAIN);
+		BasicClientCookie cookie = new BasicClientCookie(Defaults.SECRET_COOKIE_ID, HackerrankDownloader.SECRET_KEY);
+		cookie.setDomain(Defaults.DOMAIN);
 		cookie.setPath("/");
 		cookieStore.addCookie(cookie);
 
@@ -186,7 +182,7 @@ enum DownloaderCore {
 
 		String body = null;
 		try {
-			body = handler.handleResponse(authenticateAndGetURL(HOST + url));
+			body = handler.handleResponse(authenticateAndGetURL(Defaults.HOST + url));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

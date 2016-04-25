@@ -13,7 +13,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class HackerrankDownloader {
-	private static final int NUMBER_OF_ITEMS_TO_DOWNLOAD = 10;
 	static final String SECRET_KEY = getSecretFromConfig();
 
 	public static void main(String[] args) {
@@ -21,7 +20,7 @@ public class HackerrankDownloader {
 		try {
 			setupCLI(args);
 		} catch (ParseException e) {
-			System.err.println("Fatal Error: failed to parse command line arguments.");
+			System.err.println(e.getMessage());
 			System.exit(1);
 		}
 
@@ -32,7 +31,7 @@ public class HackerrankDownloader {
 		// Download everything first
 		/*
 		try {
-			Map<String, List<Integer>> structure = dc.getStructure(0, NUMBER_OF_ITEMS_TO_DOWNLOAD);
+			Map<String, List<Integer>> structure = dc.getStructure(0, Defaults.ITEMS_TO_DOWNLOAD);
 			for (Entry<String, List<Integer>> entry : structure.entrySet()) {
 				String challengeSlug = entry.getKey();
 				HRChallenge currentChallenge = dc.getChallengeDetails(challengeSlug);
