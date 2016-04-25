@@ -1,5 +1,6 @@
 package net.cyllene.hackerrank.downloader;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
@@ -130,7 +131,7 @@ public class JsonParsersTest {
 	}
 
 	private String getFakeData(String path) {
-		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream(path));
+		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream(path), Charsets.UTF_8.name());
 		return fakeData.useDelimiter("\\Z").next();
 	}
 }
