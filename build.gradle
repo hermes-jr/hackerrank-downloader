@@ -6,6 +6,16 @@ apply plugin: 'idea'
 
 sourceCompatibility = 1.7
 
+task jarComplete(type: Jar) {
+	description = 'Assembles a jar archive containing the main classes and dependencies.'
+	group = 'build'
+
+	manifest { attributes 'Main-Class': 'net.cyllene.hackerrank.downloader.HackerrankDownloader' }
+
+	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+	with jar
+}
+
 repositories {
 	mavenCentral()
 }
