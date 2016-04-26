@@ -4,11 +4,11 @@ import org.apache.commons.cli.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,7 +16,6 @@ public class HackerrankDownloader {
 	static final String SECRET_KEY = getSecretFromConfig();
 
 	public static void main(String[] args) {
-		System.out.println(Arrays.toString(args));
 		try {
 			setupCLI(args);
 		} catch (ParseException e) {
@@ -31,7 +30,7 @@ public class HackerrankDownloader {
 		// Download everything first
 		/*
 		try {
-			Map<String, List<Integer>> structure = dc.getStructure(0, Defaults.ITEMS_TO_DOWNLOAD);
+			Map<String, List<Integer>> structure = dc.getStructure(Defaults.ITEMS_TO_SKIP, Defaults.ITEMS_TO_DOWNLOAD);
 			for (Entry<String, List<Integer>> entry : structure.entrySet()) {
 				String challengeSlug = entry.getKey();
 				HRChallenge currentChallenge = dc.getChallengeDetails(challengeSlug);
@@ -91,12 +90,31 @@ public class HackerrankDownloader {
 
 	private static void setupCLI(String[] args) throws ParseException {
 		final Options options = new Options();
-		options.addOption("t", true, "Setup some shit");
-		options.addOption("v", false, "Be verbose");
+		options.addOption(Option.builder().longOpt("help")
+				.required(false)
+				.desc("display this help and exit")
+				.build());
+		options.addOption(Option.builder("d").longOpt("directory")
+				.hasArg(true)
+				.argName("PATH")
+				.desc("path to output directory. Default: current working directory")
+				.build());
+		options.addOption(Option.builder("n").longOpt("number-of-items")
+				.required(false)
+				.desc("number of items to download. Default is " + Defaults.ITEMS_TO_DOWNLOAD)
+				.build());
+		options.addOption(Option.builder("o").longOpt("offset")
+				.required(false)
+				.desc("number of items to skip. Default is " + Defaults.ITEMS_TO_SKIP)
+				.build());
+		options.addOption("v", false, "run in verbose mode");
+
 		final CommandLineParser parser = new DefaultParser();
 		final CommandLine cmd = parser.parse(options, args);
 
-		System.out.println(cmd.getOptionValue("t"));
+		if (cmd.hasOption("help")) {
+			printHelp(options);
+		}
 	}
 
 	/**
@@ -122,5 +140,16 @@ public class HackerrankDownloader {
 		}
 
 		return result;
+	}
+
+	private static void printHelp(Options options) {
+		HelpFormatter formatter = new HelpFormatter();
+		String progname = "program.jar";
+		try {
+			progname = new File(HackerrankDownloader.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getName();
+		} catch (URISyntaxException e) {
+			// do nothing
+		}
+		formatter.printHelp(progname, options);
 	}
 }

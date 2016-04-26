@@ -1,6 +1,5 @@
 package net.cyllene.hackerrank.downloader;
 
-import org.apache.commons.codec.Charsets;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
@@ -13,7 +12,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -42,7 +41,7 @@ public class JsonParsersTest {
 	public void testChallengeDescriptionParser() throws Exception {
 		String responseBody = getFakeData("/test_sample_submission.json");
 
-		HttpResponse response = prepareResponse(200, responseBody);
+		HttpResponse response = prepareFakeResponse(200, responseBody);
 
 		when(mockHttpClient.execute(any(HttpUriRequest.class)))
 				.thenReturn(response);
@@ -73,7 +72,7 @@ public class JsonParsersTest {
 	public void getStructure() throws Exception {
 		String responseBody = getFakeData("/test_sample_list_of_submissions.json");
 
-		HttpResponse response = prepareResponse(200, responseBody);
+		HttpResponse response = prepareFakeResponse(200, responseBody);
 
 		when(mockHttpClient.execute(any(HttpUriRequest.class)))
 				.thenReturn(response);
@@ -91,7 +90,7 @@ public class JsonParsersTest {
 	public void getChallengeDetails() throws Exception {
 		String responseBody = getFakeData("/test_sample_challenge_details.json");
 
-		HttpResponse response = prepareResponse(200, responseBody);
+		HttpResponse response = prepareFakeResponse(200, responseBody);
 
 		when(mockHttpClient.execute(any(HttpUriRequest.class)))
 				.thenReturn(response);
@@ -117,21 +116,21 @@ public class JsonParsersTest {
 		assertThat(z.size(), equalTo(4));
 	}
 
-	private HttpResponse prepareResponse(int expectedResponseStatus,
-										 String expectedResponseBody) {
+	private HttpResponse prepareFakeResponse(int expectedResponseStatus,
+											 String expectedResponseBody) {
 		HttpResponse response = new BasicHttpResponse(new BasicStatusLine(
 				new ProtocolVersion("HTTP", 1, 1), expectedResponseStatus, ""));
 		response.setStatusCode(expectedResponseStatus);
 		try {
 			response.setEntity(new StringEntity(expectedResponseBody));
-		} catch (UnsupportedEncodingException e) {
-			throw new IllegalArgumentException(e);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return response;
 	}
 
 	private String getFakeData(String path) {
-		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream(path), Charsets.UTF_8.name());
+		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream(path), StandardCharsets.UTF_8.name());
 		return fakeData.useDelimiter("\\Z").next();
 	}
 }

@@ -10,4 +10,5 @@ class Defaults {
 	static final String HOST = "https://" + DOMAIN;
 	static final String SECRET_COOKIE_ID = "_hackerrank_session";
 	static final int ITEMS_TO_DOWNLOAD = 65535;
+	static final int ITEMS_TO_SKIP = 0;
 }
