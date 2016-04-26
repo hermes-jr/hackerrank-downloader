@@ -18,6 +18,7 @@ class DownloaderSettings {
 
 	static Options cliOptions = null;
 	static CommandLine cmd = null;
+	static String outputDir = "./hr_solved_challenges";
 
 	static boolean beVerbose = false;
 }

@@ -21,6 +21,7 @@ public class HackerrankDownloader {
 	}
 
 	public static void main(String[] args) {
+		// Parse arguments and set up the defaults
 		DownloaderSettings.cmd = parseArguments(args);
 
 		if (DownloaderSettings.cmd.hasOption("help")) {
@@ -28,8 +29,61 @@ public class HackerrankDownloader {
 			System.exit(0);
 		}
 
-		if (DownloaderSettings.cmd.hasOption('v')) {
+		if (DownloaderSettings.cmd.hasOption("verbose")) {
 			DownloaderSettings.beVerbose = true;
+		}
+
+		/**
+		 * Output directory logic:
+		 * 1) if directory exists, ask for -f option to overwrite, quit with message
+		 * 2) if -f flag is set, check if user has access to a parent directory
+		 * 3) if no access, quit with error
+		 * 4) if everything is OK, remember the path
+		 */
+		String sDesiredPath = DownloaderSettings.outputDir;
+		if (DownloaderSettings.cmd.hasOption("directory")) {
+			sDesiredPath = DownloaderSettings.cmd.getOptionValue("d", DownloaderSettings.outputDir);
+		}
+		if (DownloaderSettings.beVerbose) {
+			System.out.println("Checking output dir: " + sDesiredPath);
+		}
+		Path desiredPath = Paths.get(sDesiredPath);
+		if (Files.exists(desiredPath) && Files.isDirectory(desiredPath)) {
+			if (!DownloaderSettings.cmd.hasOption("f")) {
+				System.out.println("I wouldn't like to overwrite existing directory: " + sDesiredPath
+						+ ", set the --force flag if you are sure. May lead to data loss, be careful.");
+				System.exit(0);
+			} else {
+				System.out.println("WARNING!"
+						+ System.lineSeparator()
+						+ "--force flag is set. Overwriting directory: "
+						+ sDesiredPath + System.lineSeparator()
+						+ "WARNING!");
+			}
+		}
+		if ((Files.exists(desiredPath) && !Files.isWritable(desiredPath)) || !Files.isWritable(desiredPath.getParent())) {
+			System.err.println("Fatal error: " + sDesiredPath + " cannot be created or modified. Check permissions.");
+			// TODO: use Exceptions instead of system.exit
+			System.exit(1);
+		}
+		DownloaderSettings.outputDir = sDesiredPath;
+
+		Integer limit = DownloaderSettings.ITEMS_TO_DOWNLOAD;
+		if (DownloaderSettings.cmd.hasOption("limit")) {
+			try {
+				limit = ((Number) DownloaderSettings.cmd.getParsedOptionValue("l")).intValue();
+			} catch (ParseException e) {
+				System.out.println("Incorrect limit: " + e.getMessage() + System.lineSeparator() + "Using default value: " + limit);
+			}
+		}
+
+		Integer offset = DownloaderSettings.ITEMS_TO_SKIP;
+		if (DownloaderSettings.cmd.hasOption("offset")) {
+			try {
+				offset = ((Number) DownloaderSettings.cmd.getParsedOptionValue("o")).intValue();
+			} catch (ParseException e) {
+				System.out.println("Incorrect offset: " + e.getMessage() + " Using default value: " + offset);
+			}
 		}
 
 		DownloaderCore dc = DownloaderCore.INSTANCE;
@@ -37,24 +91,6 @@ public class HackerrankDownloader {
 		List<HRChallenge> challenges = new LinkedList<>();
 
 		// Download everything first
-		Integer limit = DownloaderSettings.ITEMS_TO_DOWNLOAD;
-		if (DownloaderSettings.cmd.hasOption("n")) {
-			try {
-				limit = ((Number) DownloaderSettings.cmd.getParsedOptionValue("n")).intValue();
-			} catch (ParseException e) {
-				System.out.println("Error: " + e.getMessage() + System.lineSeparator() + "Using default: " + limit);
-			}
-		}
-
-		Integer offset = DownloaderSettings.ITEMS_TO_SKIP;
-		if (DownloaderSettings.cmd.hasOption("o")) {
-			try {
-				offset = ((Number) DownloaderSettings.cmd.getParsedOptionValue("o")).intValue();
-			} catch (ParseException e) {
-				System.out.println("Error: " + e.getMessage() + " Using default: " + offset);
-			}
-		}
-
 		Map<String, List<Integer>> structure = null;
 		try {
 			structure = dc.getStructure(offset, limit);
@@ -106,7 +142,7 @@ public class HackerrankDownloader {
 				if (currentChallenge.getSubmissions().isEmpty())
 					continue;
 
-				final String sChallengePath = "./hr_downloaded_solutions/" + currentChallenge.getSlug();
+				final String sChallengePath = DownloaderSettings.outputDir + "/" + currentChallenge.getSlug();
 				final String sSolutionPath = sChallengePath + "/accepted_solutions";
 				final String sDescriptionPath = sChallengePath + "/problem_description";
 
@@ -153,10 +189,9 @@ public class HackerrankDownloader {
 	/**
 	 * @return {@link Options} object containing all valid options for this program
 	 */
-	static Options createCliOptions() {
+	private static Options createCliOptions() {
 		final Options options = new Options();
 		options.addOption(Option.builder("h").longOpt("help")
-				.required(false)
 				.desc("display this help and exit")
 				.build());
 		options.addOption(Option.builder("d").longOpt("directory")
@@ -164,12 +199,14 @@ public class HackerrankDownloader {
 				.argName("PATH")
 				.desc("path to output directory. Default: current working directory")
 				.build());
-		options.addOption(Option.builder("n").longOpt("number-of-items")
-				.required(false)
+		options.addOption(Option.builder("f").longOpt("force-overwrite")
+				.desc("Force overwrite if output directory exists. May lead to data loss.")
+				.build());
+		options.addOption(Option.builder("l").longOpt("limit")
 				.hasArg(true)
 				.argName("NUMBER")
 				.type(Number.class)
-				.desc("number of items to download. Default is " + DownloaderSettings.ITEMS_TO_DOWNLOAD)
+				.desc("number of solved challenges to download. Default is " + DownloaderSettings.ITEMS_TO_DOWNLOAD)
 				.build());
 		options.addOption(Option.builder("o").longOpt("offset")
 				.required(false)
