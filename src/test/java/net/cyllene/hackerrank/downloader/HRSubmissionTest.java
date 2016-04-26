@@ -6,9 +6,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-/**
- * Created by hermes on 19.04.2016.
- */
 public class HRSubmissionTest {
 	@Test
 	public void isHRSubmissionBuilderBuildingFull() {
