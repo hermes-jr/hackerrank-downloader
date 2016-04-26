@@ -12,6 +12,7 @@ class DownloaderSettings {
 	static final String DOMAIN = "www.hackerrank.com";
 	static final String HOST = "https://" + DOMAIN;
 	static final String SECRET_COOKIE_ID = "_hackerrank_session";
+	static final String KEYFILE_NAME = ".hackerrank-downloader-key";
 	static final int ITEMS_TO_DOWNLOAD = 65535;
 	static final int ITEMS_TO_SKIP = 0;
 

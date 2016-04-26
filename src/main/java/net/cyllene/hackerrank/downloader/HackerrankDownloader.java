@@ -25,7 +25,9 @@ public class HackerrankDownloader {
 
 		if (DownloaderSettings.cmd.hasOption("help")) {
 			printHelp();
+			System.exit(0);
 		}
+
 		if (DownloaderSettings.cmd.hasOption('v')) {
 			DownloaderSettings.beVerbose = true;
 		}
@@ -35,44 +37,67 @@ public class HackerrankDownloader {
 		List<HRChallenge> challenges = new LinkedList<>();
 
 		// Download everything first
+		Integer limit = DownloaderSettings.ITEMS_TO_DOWNLOAD;
+		if (DownloaderSettings.cmd.hasOption("n")) {
+			try {
+				limit = ((Number) DownloaderSettings.cmd.getParsedOptionValue("n")).intValue();
+			} catch (ParseException e) {
+				System.out.println("Error: " + e.getMessage() + System.lineSeparator() + "Using default: " + limit);
+			}
+		}
+
+		Integer offset = DownloaderSettings.ITEMS_TO_SKIP;
+		if (DownloaderSettings.cmd.hasOption("o")) {
+			try {
+				offset = ((Number) DownloaderSettings.cmd.getParsedOptionValue("o")).intValue();
+			} catch (ParseException e) {
+				System.out.println("Error: " + e.getMessage() + " Using default: " + offset);
+			}
+		}
+
+		Map<String, List<Integer>> structure = null;
 		try {
-			Integer limit = DownloaderSettings.ITEMS_TO_DOWNLOAD;
-			if (DownloaderSettings.cmd.hasOption("n")) {
-				try {
-					limit = ((Number) DownloaderSettings.cmd.getParsedOptionValue("n")).intValue();
-				} catch (ParseException e) {
-					System.out.println("Error: " + e.getMessage() + System.lineSeparator() + "Using default: " + limit);
-				}
-			}
-
-			Integer offset = DownloaderSettings.ITEMS_TO_SKIP;
-			if (DownloaderSettings.cmd.hasOption("o")) {
-				try {
-					offset = ((Number) DownloaderSettings.cmd.getParsedOptionValue("o")).intValue();
-				} catch (ParseException e) {
-					System.out.println("Error: " + e.getMessage() + " Using default: " + offset);
-				}
-			}
-
-			Map<String, List<Integer>> structure = dc.getStructure(offset, limit);
-			for (Map.Entry<String, List<Integer>> entry : structure.entrySet()) {
-				String challengeSlug = entry.getKey();
-				HRChallenge currentChallenge = dc.getChallengeDetails(challengeSlug);
-
-				for (Integer submissionId : entry.getValue()) {
-					HRSubmission submission = dc.getSubmissionDetails(submissionId);
-
-					// TODO: probably should move filtering logic elsewhere(getStructure, maybe)
-					if (submission.getStatus().equalsIgnoreCase("Accepted")) {
-						currentChallenge.getSubmissions().add(submission);
-					}
-				}
-
-				challenges.add(currentChallenge);
-			}
+			structure = dc.getStructure(offset, limit);
 		} catch (IOException e) {
-			System.err.println("Fatal Error: Unable to parse or download data.");
+			System.err.println("Fatal Error: could not get data structure.");
 			e.printStackTrace();
+			System.exit(1);
+		}
+
+		challengesLoop:
+		for (Map.Entry<String, List<Integer>> entry : structure.entrySet()) {
+			String challengeSlug = entry.getKey();
+			HRChallenge currentChallenge = null;
+			try {
+				currentChallenge = dc.getChallengeDetails(challengeSlug);
+			} catch (IOException e) {
+				System.err.println("Error: could not get challenge info for: " + challengeSlug);
+				if (DownloaderSettings.beVerbose) {
+					e.printStackTrace();
+				}
+				continue challengesLoop;
+			}
+
+			submissionsLoop:
+			for (Integer submissionId : entry.getValue()) {
+				HRSubmission submission = null;
+				try {
+					submission = dc.getSubmissionDetails(submissionId);
+				} catch (IOException e) {
+					System.err.println("Error: could not get submission info for: " + submissionId);
+					if (DownloaderSettings.beVerbose) {
+						e.printStackTrace();
+					}
+					continue submissionsLoop;
+				}
+
+				// TODO: probably should move filtering logic elsewhere(getStructure, maybe)
+				if (submission.getStatus().equalsIgnoreCase("Accepted")) {
+					currentChallenge.getSubmissions().add(submission);
+				}
+			}
+
+			challenges.add(currentChallenge);
 		}
 
 		// Now dump all data to disk
@@ -180,16 +205,17 @@ public class HackerrankDownloader {
 	 * @return String representing a _hackerrank_session id, about 430 characters long.
 	 */
 	private static String getSecretFromConfig() {
-		final String confPathStr = System.getProperty("user.home") + File.separator + ".hackerrank-downloader-key";
+		final String confPathStr = System.getProperty("user.home") + File.separator + DownloaderSettings.KEYFILE_NAME;
 		final Path confPath = Paths.get(confPathStr);
 		String result = null;
 		try {
 			result = Files.readAllLines(confPath, StandardCharsets.US_ASCII).get(0);
 		} catch (IOException e) {
 			System.err.println("Fatal Error: Unable to open configuration file " + confPathStr
-					+ "\nFile might be missing, empty or inaccessible by user."
-					+ "\nIt must contain a single ASCII line, a value of \"_hackerrank_session\" Cookie variable,"
-					+ "\nwhich length is about 430 characters.");
+					+ System.lineSeparator() + "File might be missing, empty or inaccessible by user."
+					+ System.lineSeparator() + "It must contain a single ASCII line, a value of \""
+					+ DownloaderSettings.SECRET_COOKIE_ID + "\" cookie variable,"
+					+ System.lineSeparator() + "which length is about 430 symbols.");
 			System.exit(1);
 		}
 
@@ -198,12 +224,23 @@ public class HackerrankDownloader {
 
 	private static void printHelp() {
 		HelpFormatter formatter = new HelpFormatter();
-		String progname = "program.jar";
+		String sUsage = "java -jar ";
 		try {
-			progname = new File(HackerrankDownloader.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getName();
+			sUsage += new File(HackerrankDownloader.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getName();
 		} catch (URISyntaxException e) {
-			// do nothing
+			sUsage += "hackerrank-downloader.jar";
 		}
-		formatter.printHelp(progname, DownloaderSettings.cliOptions);
+
+		String header = "";
+		String footer = System.lineSeparator() +
+				"If you are experiencing problems with JSON parser, "
+				+ "try to run program with \"-Dfile.encoding=UTF-8\" option"
+				+ System.lineSeparator() + System.lineSeparator()
+				+ "Application expects a file " + DownloaderSettings.KEYFILE_NAME
+				+ " to be created in your home directory. "
+				+ "It must contain a single ASCII line, a value of \""
+				+ DownloaderSettings.SECRET_COOKIE_ID + "\" cookie variable, "
+				+ "which length is about 430 symbols.";
+		formatter.printHelp(sUsage, header, DownloaderSettings.cliOptions, footer, true);
 	}
 }
