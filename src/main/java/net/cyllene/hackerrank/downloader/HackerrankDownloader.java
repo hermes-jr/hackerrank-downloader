@@ -11,16 +11,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class HackerrankDownloader {
 	static final String SECRET_KEY = getSecretFromConfig();
 
+	static {
+		DownloaderSettings.cliOptions = createCliOptions();
+	}
+
 	public static void main(String[] args) {
-		try {
-			setupCLI(args);
-		} catch (ParseException e) {
-			System.err.println(e.getMessage());
-			System.exit(1);
+		DownloaderSettings.cmd = parseArguments(args);
+
+		if (DownloaderSettings.cmd.hasOption("help")) {
+			printHelp();
+		}
+		if (DownloaderSettings.cmd.hasOption('v')) {
+			DownloaderSettings.beVerbose = true;
 		}
 
 		DownloaderCore dc = DownloaderCore.INSTANCE;
@@ -28,10 +35,27 @@ public class HackerrankDownloader {
 		List<HRChallenge> challenges = new LinkedList<>();
 
 		// Download everything first
-		/*
 		try {
-			Map<String, List<Integer>> structure = dc.getStructure(Defaults.ITEMS_TO_SKIP, Defaults.ITEMS_TO_DOWNLOAD);
-			for (Entry<String, List<Integer>> entry : structure.entrySet()) {
+			Integer limit = DownloaderSettings.ITEMS_TO_DOWNLOAD;
+			if (DownloaderSettings.cmd.hasOption("n")) {
+				try {
+					limit = ((Number) DownloaderSettings.cmd.getParsedOptionValue("n")).intValue();
+				} catch (ParseException e) {
+					System.out.println("Error: " + e.getMessage() + System.lineSeparator() + "Using default: " + limit);
+				}
+			}
+
+			Integer offset = DownloaderSettings.ITEMS_TO_SKIP;
+			if (DownloaderSettings.cmd.hasOption("o")) {
+				try {
+					offset = ((Number) DownloaderSettings.cmd.getParsedOptionValue("o")).intValue();
+				} catch (ParseException e) {
+					System.out.println("Error: " + e.getMessage() + " Using default: " + offset);
+				}
+			}
+
+			Map<String, List<Integer>> structure = dc.getStructure(offset, limit);
+			for (Map.Entry<String, List<Integer>> entry : structure.entrySet()) {
 				String challengeSlug = entry.getKey();
 				HRChallenge currentChallenge = dc.getChallengeDetails(challengeSlug);
 
@@ -66,18 +90,32 @@ public class HackerrankDownloader {
 
 				// FIXME: this should be done the other way
 				String plainBody = currentChallenge.getDescriptions().get(0).getBody();
+				String sFname;
 				if (!plainBody.equals("null")) {
-					Files.write(Paths.get(sDescriptionPath + "/english.txt"), plainBody.getBytes(Charsets.UTF_8));
+					sFname = sDescriptionPath + "/english.txt";
+					if (DownloaderSettings.beVerbose) {
+						System.out.println("Writing to: " + sFname);
+					}
+
+					Files.write(Paths.get(sFname), plainBody.getBytes(StandardCharsets.UTF_8.name()));
 				}
 
 				String htmlBody = currentChallenge.getDescriptions().get(0).getBodyHTML();
 				String temporaryHtmlTemplate = "<html></body>" + htmlBody + "</body></html>";
-				Files.write(Paths.get(sDescriptionPath + "/english.html"), temporaryHtmlTemplate.getBytes(Charsets.UTF_8));
+
+				sFname = sDescriptionPath + "/english.html";
+				if (DownloaderSettings.beVerbose) {
+					System.out.println("Writing to: " + sFname);
+				}
+				Files.write(Paths.get(sFname), temporaryHtmlTemplate.getBytes(StandardCharsets.UTF_8.name()));
 
 				for (HRSubmission submission : currentChallenge.getSubmissions()) {
-					Files.write(Paths.get(
-							String.format("%s/%d.%s", sSolutionPath, submission.getId(), submission.getLanguage())),
-							submission.getSourceCode().getBytes(Charsets.UTF_8));
+					sFname = String.format("%s/%d.%s", sSolutionPath, submission.getId(), submission.getLanguage());
+					if (DownloaderSettings.beVerbose) {
+						System.out.println("Writing to: " + sFname);
+					}
+
+					Files.write(Paths.get(sFname), submission.getSourceCode().getBytes(StandardCharsets.UTF_8.name()));
 				}
 
 			}
@@ -85,12 +123,14 @@ public class HackerrankDownloader {
 			System.err.println("Fatal Error: couldn't dump data to disk.");
 			System.exit(1);
 		}
-		*/
 	}
 
-	private static void setupCLI(String[] args) throws ParseException {
+	/**
+	 * @return {@link Options} object containing all valid options for this program
+	 */
+	static Options createCliOptions() {
 		final Options options = new Options();
-		options.addOption(Option.builder().longOpt("help")
+		options.addOption(Option.builder("h").longOpt("help")
 				.required(false)
 				.desc("display this help and exit")
 				.build());
@@ -101,20 +141,34 @@ public class HackerrankDownloader {
 				.build());
 		options.addOption(Option.builder("n").longOpt("number-of-items")
 				.required(false)
-				.desc("number of items to download. Default is " + Defaults.ITEMS_TO_DOWNLOAD)
+				.hasArg(true)
+				.argName("NUMBER")
+				.type(Number.class)
+				.desc("number of items to download. Default is " + DownloaderSettings.ITEMS_TO_DOWNLOAD)
 				.build());
 		options.addOption(Option.builder("o").longOpt("offset")
 				.required(false)
-				.desc("number of items to skip. Default is " + Defaults.ITEMS_TO_SKIP)
+				.hasArg(true)
+				.argName("NUMBER")
+				.type(Number.class)
+				.desc("number of items to skip. Default is " + DownloaderSettings.ITEMS_TO_SKIP)
 				.build());
-		options.addOption("v", false, "run in verbose mode");
+		options.addOption(Option.builder("v").longOpt("verbose")
+				.required(false)
+				.desc("run in verbose mode")
+				.build());
+		return options;
+	}
 
+	static CommandLine parseArguments(String[] args) {
 		final CommandLineParser parser = new DefaultParser();
-		final CommandLine cmd = parser.parse(options, args);
-
-		if (cmd.hasOption("help")) {
-			printHelp(options);
+		try {
+			return parser.parse(DownloaderSettings.cliOptions, args);
+		} catch (ParseException e) {
+			System.err.println("Fatal Error: " + e.getMessage());
+			System.exit(1);
 		}
+		return null;
 	}
 
 	/**
@@ -142,7 +196,7 @@ public class HackerrankDownloader {
 		return result;
 	}
 
-	private static void printHelp(Options options) {
+	private static void printHelp() {
 		HelpFormatter formatter = new HelpFormatter();
 		String progname = "program.jar";
 		try {
@@ -150,6 +204,6 @@ public class HackerrankDownloader {
 		} catch (URISyntaxException e) {
 			// do nothing
 		}
-		formatter.printHelp(progname, options);
+		formatter.printHelp(progname, DownloaderSettings.cliOptions);
 	}
 }

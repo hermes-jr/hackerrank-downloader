@@ -1,8 +1,11 @@
 package net.cyllene.hackerrank.downloader;
 
-class Defaults {
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+
+class DownloaderSettings {
 	// Suppress default constructor for noninstantiability
-	private Defaults() {
+	private DownloaderSettings() {
 		throw new AssertionError();
 	}
 
@@ -11,4 +14,9 @@ class Defaults {
 	static final String SECRET_COOKIE_ID = "_hackerrank_session";
 	static final int ITEMS_TO_DOWNLOAD = 65535;
 	static final int ITEMS_TO_SKIP = 0;
+
+	static Options cliOptions = null;
+	static CommandLine cmd = null;
+
+	static boolean beVerbose = false;
 }

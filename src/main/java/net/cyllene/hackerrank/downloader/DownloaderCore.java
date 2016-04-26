@@ -37,8 +37,8 @@ enum DownloaderCore {
 	 */
 	static {
 		BasicCookieStore cookieStore = new BasicCookieStore();
-		BasicClientCookie cookie = new BasicClientCookie(Defaults.SECRET_COOKIE_ID, HackerrankDownloader.SECRET_KEY);
-		cookie.setDomain(Defaults.DOMAIN);
+		BasicClientCookie cookie = new BasicClientCookie(DownloaderSettings.SECRET_COOKIE_ID, HackerrankDownloader.SECRET_KEY);
+		cookie.setDomain(DownloaderSettings.DOMAIN);
 		cookie.setPath("/");
 		cookieStore.addCookie(cookie);
 
@@ -54,6 +54,11 @@ enum DownloaderCore {
 				.build();
 	}
 
+	/**
+	 * Provides a way to inject mock {@link HttpClient}
+	 *
+	 * @param client
+	 */
 	public void setHttpClient(HttpClient client) {
 		httpClient = client;
 	}
@@ -80,6 +85,9 @@ enum DownloaderCore {
 			result.put(ci, currentChallengeSubmissions);
 		}
 
+		if (DownloaderSettings.beVerbose) {
+			System.out.println("Data structure is: " + result);
+		}
 		return result;
 	}
 
@@ -129,6 +137,12 @@ enum DownloaderCore {
 		return getChallengeDetails("" + id);
 	}
 
+	/**
+	 * Returns an assembled {@link HRSubmission} object
+	 *
+	 * @param slug Challenge id (slug), which is passed to server in URL
+	 * @return {@link HRChallenge} object created from JSON returned by server
+	 */
 	public HRChallenge getChallengeDetails(String slug) throws IOException {
 		String body = getJsonStringFrom("/rest/contests/master/challenges/" + slug);
 
@@ -182,7 +196,7 @@ enum DownloaderCore {
 
 		String body = null;
 		try {
-			body = handler.handleResponse(authenticateAndGetURL(Defaults.HOST + url));
+			body = handler.handleResponse(authenticateAndGetURL(DownloaderSettings.HOST + url));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
