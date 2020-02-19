@@ -16,54 +16,58 @@
 
 package net.cyllene.hackerrank.downloader;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HRSubmissionTest {
-	@Test
-	public void isHRSubmissionBuilderBuildingFull() {
-		HRSubmission submission = new HRSubmission.Builder(1, 2L, 3)
-				.score(4.0)
-				.sourceCode("abc")
-				.hackerId(5)
-				.kind("bcd")
-				.language("cde")
-				.status("def")
-				.build();
+    @Test
+    public void isHRSubmissionBuilderBuildingFull() {
+        HRSubmission submission = HRSubmission.builder()
+                .id(1)
+                .ctime(2L)
+                .statusCode(3)
+                .score(4.0)
+                .sourceCode("abc")
+                .hackerId(5)
+                .kind("bcd")
+                .language("cde")
+                .status("def")
+                .build();
 
-		System.out.println("Inspecting " + submission);
+        System.out.println("Inspecting " + submission);
 
-		assertThat(submission.getId(), equalTo(1));
-		assertThat(submission.getCtime(), equalTo(2L));
-		assertThat(submission.getStatusCode(), equalTo(3));
-		assertThat(submission.getScore(), equalTo(4.0));
-		assertThat(submission.getSourceCode(), equalTo("abc"));
-		assertThat(submission.getHackerId(), equalTo(5));
-		assertThat(submission.getKind(), equalTo("bcd"));
-		assertThat(submission.getLanguage(), equalTo("cde"));
-		assertThat(submission.getStatus(), equalTo("def"));
-	}
+        assertThat(submission.getId()).isEqualTo(1);
+        assertThat(submission.getCtime()).isEqualTo(2L);
+        assertThat(submission.getStatusCode()).isEqualTo(3);
+        assertThat(submission.getScore()).isEqualTo(4.0);
+        assertThat(submission.getSourceCode()).isEqualTo("abc");
+        assertThat(submission.getHackerId()).isEqualTo(5);
+        assertThat(submission.getKind()).isEqualTo("bcd");
+        assertThat(submission.getLanguage()).isEqualTo("cde");
+        assertThat(submission.getStatus()).isEqualTo("def");
+    }
 
-	@Test
-	public void isHRSubmissionBuilderBuildingPartial() {
-		HRSubmission submission = new HRSubmission.Builder(10, 100L, 1)
-				.sourceCode("abc cba")
-				.score(20.0)
-				.build();
+    @Test
+    public void isHRSubmissionBuilderBuildingPartial() {
+        HRSubmission submission = HRSubmission.builder()
+                .id(10)
+                .ctime(100L)
+                .statusCode(1)
+                .sourceCode("abc cba")
+                .score(20.0)
+                .build();
 
-		System.out.println("Inspecting " + submission);
+        System.out.println("Inspecting " + submission);
 
-		assertThat(submission.getId(), equalTo(10));
-		assertThat(submission.getCtime(), equalTo(100L));
-		assertThat(submission.getStatusCode(), equalTo(1));
-		assertThat(submission.getScore(), equalTo(20.0));
-		assertThat(submission.getSourceCode(), equalTo("abc cba"));
-		assertThat(submission.getHackerId(), equalTo(0));
-		assertThat(submission.getKind(), nullValue());
-		assertThat(submission.getLanguage(), nullValue());
-		assertThat(submission.getStatus(), nullValue());
-	}
+        assertThat(submission.getId()).isEqualTo(10);
+        assertThat(submission.getCtime()).isEqualTo(100L);
+        assertThat(submission.getStatusCode()).isEqualTo(1);
+        assertThat(submission.getScore()).isEqualTo(20.0);
+        assertThat(submission.getSourceCode()).isEqualTo("abc cba");
+        assertThat(submission.getHackerId()).isEqualTo(0);
+        assertThat(submission.getKind()).isNull();
+        assertThat(submission.getLanguage()).isNull();
+        assertThat(submission.getStatus()).isNull();
+    }
 }

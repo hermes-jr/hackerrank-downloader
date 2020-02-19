@@ -16,24 +16,23 @@
 
 package net.cyllene.hackerrank.downloader;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HRChallengeDescriptionTest {
-	@Test
-	public void isHRChallengeDescriptionBuilderBuildingFull() {
-		HRChallengeDescription submission = new HRChallengeDescription.Builder()
-				.language("Chinese")
-				.body("a b c d\nc d e f")
-				.bodyHTML("<h1>markup</h1>")
-				.build();
+    @Test
+    public void isHRChallengeDescriptionBuilderBuildingFull() {
+        HRChallengeDescription submission = HRChallengeDescription.builder()
+                .language("Chinese")
+                .body("a b c d\nc d e f")
+                .bodyHTML("<h1>markup</h1>")
+                .build();
 
-		System.out.println("Inspecting " + submission);
+        System.out.println("Inspecting " + submission);
 
-		assertThat(submission.getLanguage(), equalTo("Chinese"));
-		assertThat(submission.getBody(), equalTo("a b c d\nc d e f"));
-		assertThat(submission.getBodyHTML(), equalTo("<h1>markup</h1>"));
-	}
+        assertThat(submission.getLanguage()).isEqualTo("Chinese");
+        assertThat(submission.getBody()).isEqualTo("a b c d\nc d e f");
+        assertThat(submission.getBodyHTML()).isEqualTo("<h1>markup</h1>");
+    }
 }
