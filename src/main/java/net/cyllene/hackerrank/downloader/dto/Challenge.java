@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package net.cyllene.hackerrank.downloader;
+package net.cyllene.hackerrank.downloader.dto;
 
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class HRChallenge {
+public class Challenge {
     private long ctime;
     private String name;
     private String slug;
-    private List<HRChallengeDescription> descriptions;
-    private List<HRSubmission> submissions;
+    private List<ChallengeDescription> descriptions;
+    private List<Submission> submissions;
 }

@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package net.cyllene.hackerrank.downloader;
+package net.cyllene.hackerrank.downloader.dto;
 
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * An immutable object containing single description of a challenge
+ * in one specific language
+ */
 @Data
 @Builder
-public class HRSubmission {
-    private final int id;
-    private final String status;
-    private final long ctime;
-    private final int statusCode;
-    private final String sourceCode;
-    private final int hackerId;
-    private final String kind;
-    private final double score;
+public class ChallengeDescription {
     private final String language;
+    /**
+     * usually is null
+     */
+    private final String body;
+    /**
+     * contains a UTF-8 string with HTML markup
+     */
+    private final String bodyHTML;
 }

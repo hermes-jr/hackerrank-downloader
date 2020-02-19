@@ -16,28 +16,74 @@
 
 package net.cyllene.hackerrank.downloader;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.ParseException;
+import net.cyllene.hackerrank.downloader.exceptions.ExitWithErrorException;
+import net.cyllene.hackerrank.downloader.exceptions.ExitWithHelpException;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ArgumentParserTest {
-    @Test
+/*    @Test
     public void argumentsAreParsed() {
-        CommandLine cmd = HackerrankDownloader.parseArguments(
+        Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(
                 new String[]{"--help", "--offset", "10", "-v", "--directory=something"});
-        assertThat(cmd.hasOption("help")).isTrue(); // help
-        assertThat(cmd.hasOption('o')).isTrue(); // offset
-        assertThat(cmd.hasOption('v')).isTrue(); // verbose
-        int offset = DownloaderSettings.ITEMS_TO_SKIP;
+        assertThat(settings.hasOption("help")).isTrue(); // help
+        assertThat(settings.hasOption('o')).isTrue(); // offset
+        assertThat(settings.hasOption('v')).isTrue(); // verbose
+        int offset = Settings.ITEMS_TO_SKIP;
         try {
-            offset = ((Number) cmd.getParsedOptionValue("offset")).intValue();
+            offset = ((Number) settings.getParsedOptionValue("offset")).intValue();
         } catch (ParseException e) {
             e.printStackTrace();
         }
         assertThat(offset).isEqualTo(10);
-        assertThat(cmd.hasOption("directory")).isTrue();
-        assertThat(cmd.getOptionValue("directory")).isEqualTo("something");
+        assertThat(settings.hasOption("directory")).isTrue();
+        assertThat(settings.getOptionValue("directory")).isEqualTo("something");
+    }*/
+
+    @Test
+    public void helpOptionShouldCauseProgramToQuitWithMessage() {
+        assertThatExceptionOfType(ExitWithHelpException.class).isThrownBy(() ->
+                CommandLineDispatcher.INSTANCE.parseArguments(
+                        new String[]{"-v", "--help"})
+        );
+
+//        assertTrue(e.getMessage().contains("If you are experiencing problems with JSON parser"));
+    }
+
+    @Test
+    public void limitOptionShouldCauseErrorIfWrongDataSupplied() {
+        assertThatExceptionOfType(ExitWithErrorException.class).isThrownBy(
+                () -> CommandLineDispatcher.INSTANCE.parseArguments(
+                        new String[]{"--limit", "Not_a_number"})
+        )
+                .withMessageStartingWith("Incorrect limit");
+    }
+
+    @Test
+    public void offsetOptionShouldCauseErrorIfWrongDataSupplied() {
+        assertThatExceptionOfType(ExitWithErrorException.class).isThrownBy(
+                () -> CommandLineDispatcher.INSTANCE.parseArguments(
+                        new String[]{"--offset", "Not_a_number"})
+        )
+                .withMessageStartingWith("Incorrect offset");
+    }
+
+    @Test
+    public void limitOptionShouldBeParsed() {
+
+        Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(
+                new String[]{"--limit", "981"});
+
+        assertThat(settings.getItemsToDownload()).isEqualTo(981);
+    }
+
+    @Test
+    public void offsetOptionShouldBeParsed() {
+        Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(
+                new String[]{"--offset", "463"});
+
+        assertThat(settings.getItemsToSkip()).isEqualTo(463);
     }
 }

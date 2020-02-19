@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'application'
 }
 
 group 'net.cyllene.hackerrank'
@@ -15,23 +14,39 @@ test {
     useJUnitPlatform()
 }
 
-application {
-    mainClassName = 'net.cyllene.hackerrank.downloader.HackerrankDownloader'
-}
-
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.10'
-    annotationProcessor 'org.projectlombok:lombok:1.18.10'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.5.2'
-    testImplementation 'org.assertj:assertj-core:3.13.2'
-    testImplementation 'org.mockito:mockito-core:1.10.19'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.2'
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.6.0'
+    testImplementation 'org.assertj:assertj-core:3.15.0'
+    testImplementation 'org.mockito:mockito-core:3.2.4'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
     implementation 'org.apache.commons:commons-lang3:3.9'
     implementation 'org.apache.commons:commons-math3:3.6.1'
-    implementation 'org.apache.httpcomponents:httpclient:4.5.2'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.7.3'
-    implementation 'commons-cli:commons-cli:1.3.1'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.11'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.10.2'
+    implementation 'commons-cli:commons-cli:1.4'
+}
+
+task jarComplete(type: Jar, dependsOn: jar) {
+    description = 'Assembles a jar archive containing the main classes and dependencies.'
+    group = 'build'
+
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    } {
+        // META-INF copies of dependencies would overwrite each other
+        exclude 'META-INF/'
+    }
+
+    manifest {
+        attributes 'Main-Class': 'net.cyllene.hackerrank.downloader.HackerrankDownloader',
+                'Built-Date': new Date(),
+                'Built-JDK': System.getProperty('java.version')
+    }
+
+    with jar
 }
 
 // Workaround for Windows

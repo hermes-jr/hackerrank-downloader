@@ -16,6 +16,9 @@
 
 package net.cyllene.hackerrank.downloader;
 
+import net.cyllene.hackerrank.downloader.dto.Challenge;
+import net.cyllene.hackerrank.downloader.dto.ChallengeDescription;
+import net.cyllene.hackerrank.downloader.dto.Submission;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
@@ -62,9 +65,9 @@ public class JsonParsersTest {
 
         DownloaderCore dc = DownloaderCore.INSTANCE;
         dc.setHttpClient(mockHttpClient);
-        HRSubmission candidate = dc.getSubmissionDetails(new Random().nextInt());
+        Submission candidate = dc.getSubmissionDetails(new Random().nextInt());
 
-        HRSubmission reference = HRSubmission.builder()
+        Submission reference = Submission.builder()
                 .id(100)
                 .ctime(999919L)
                 .statusCode(1)
@@ -115,7 +118,7 @@ public class JsonParsersTest {
         DownloaderCore dc = DownloaderCore.INSTANCE;
         dc.setHttpClient(mockHttpClient);
 
-        HRChallenge challenge = dc.getChallengeDetails(new Random().nextInt());
+        Challenge challenge = dc.getChallengeDetails(new Random().nextInt());
 
         System.out.println(challenge);
     }
@@ -125,7 +128,7 @@ public class JsonParsersTest {
         String jsonStr = getFakeData("/test_sample_challenge_details.json");
 
         DownloaderCore dc = DownloaderCore.INSTANCE;
-        List<HRChallengeDescription> z = dc.getChallengeDescriptions(jsonStr);
+        List<ChallengeDescription> z = dc.getChallengeDescriptions(jsonStr);
 
         // There are 4 valid descriptions in the sample json file
         System.out.println(z);

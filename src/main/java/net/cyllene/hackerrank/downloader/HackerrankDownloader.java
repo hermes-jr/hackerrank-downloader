@@ -16,11 +16,14 @@
 
 package net.cyllene.hackerrank.downloader;
 
-import org.apache.commons.cli.*;
+import lombok.RequiredArgsConstructor;
+import net.cyllene.hackerrank.downloader.dto.Challenge;
+import net.cyllene.hackerrank.downloader.dto.Submission;
+import net.cyllene.hackerrank.downloader.exceptions.ExitWithErrorException;
+import net.cyllene.hackerrank.downloader.exceptions.ExitWithHelpException;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,113 +32,67 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class HackerrankDownloader {
-    static final String SECRET_KEY = getSecretFromConfig();
+import static net.cyllene.hackerrank.downloader.HttpClientConfiguration.httpClient;
 
-    static {
-        DownloaderSettings.cliOptions = createCliOptions();
-    }
+@RequiredArgsConstructor
+public class HackerrankDownloader implements Runnable {
+    static final String SECRET_KEY = getSecretFromConfig();
+    private final Settings settings;
 
     public static void main(String[] args) {
-        // Parse arguments and set up the defaults
-        DownloaderSettings.cmd = parseArguments(args);
-
-        if (DownloaderSettings.cmd.hasOption("help")) {
-            printHelp();
+        // Parse and validate arguments, configure settings
+        Settings settings = null;
+        try {
+            settings = CommandLineDispatcher.INSTANCE.parseArguments(args);
+            HackerrankDownloader prog = new HackerrankDownloader(settings);
+            prog.run();
+        } catch (ExitWithHelpException e) {
+            CommandLineDispatcher.INSTANCE.printHelp();
             System.exit(0);
-        }
-
-        if (DownloaderSettings.cmd.hasOption("verbose")) {
-            DownloaderSettings.beVerbose = true;
-        }
-
-		/*
-		  Output directory logic:
-		  1) if directory exists, ask for -f option to overwrite, quit with message
-		  2) if -f flag is set, check if user has access to a parent directory
-		  3) if no access, quit with error
-		  4) if everything is OK, remember the path
-		 */
-        String sDesiredPath = DownloaderSettings.outputDir;
-        if (DownloaderSettings.cmd.hasOption("directory")) {
-            sDesiredPath = DownloaderSettings.cmd.getOptionValue("d", DownloaderSettings.outputDir);
-        }
-        if (DownloaderSettings.beVerbose) {
-            System.out.println("Checking output dir: " + sDesiredPath);
-        }
-        Path desiredPath = Paths.get(sDesiredPath);
-        if (Files.exists(desiredPath) && Files.isDirectory(desiredPath)) {
-            if (!DownloaderSettings.cmd.hasOption("f")) {
-                System.out.println("I wouldn't like to overwrite existing directory: " + sDesiredPath
-                        + ", set the --force flag if you are sure. May lead to data loss, be careful.");
-                System.exit(0);
-            } else {
-                System.out.println("WARNING!"
-                        + System.lineSeparator()
-                        + "--force flag is set. Overwriting directory: "
-                        + sDesiredPath + System.lineSeparator()
-                        + "WARNING!");
-            }
-        }
-        if ((Files.exists(desiredPath) && !Files.isWritable(desiredPath)) || !Files.isWritable(desiredPath.getParent())) {
-            System.err.println("Fatal error: " + sDesiredPath + " cannot be created or modified. Check permissions.");
-            // TODO: use Exceptions instead of system.exit
+        } catch (ExitWithErrorException e) {
+            System.err.println(e.getLocalizedMessage());
             System.exit(1);
         }
-        DownloaderSettings.outputDir = sDesiredPath;
+    }
 
-        int limit = DownloaderSettings.ITEMS_TO_DOWNLOAD;
-        if (DownloaderSettings.cmd.hasOption("limit")) {
-            try {
-                limit = ((Number) DownloaderSettings.cmd.getParsedOptionValue("l")).intValue();
-            } catch (ParseException e) {
-                System.out.println("Incorrect limit: " + e.getMessage() + System.lineSeparator() + "Using default value: " + limit);
-            }
-        }
-
-        int offset = DownloaderSettings.ITEMS_TO_SKIP;
-        if (DownloaderSettings.cmd.hasOption("offset")) {
-            try {
-                offset = ((Number) DownloaderSettings.cmd.getParsedOptionValue("o")).intValue();
-            } catch (ParseException e) {
-                System.out.println("Incorrect offset: " + e.getMessage() + " Using default value: " + offset);
-            }
-        }
+    @Override
+    public void run() {
+        Path desiredPath = decideOnOutputDirectory();
 
         DownloaderCore dc = DownloaderCore.INSTANCE;
+        dc.setHttpClient(httpClient(SECRET_KEY));
 
-        List<HRChallenge> challenges = new LinkedList<>();
+        List<Challenge> challenges = new LinkedList<>();
 
         // Download everything first
         Map<String, List<Integer>> structure = null;
         try {
-            structure = dc.getStructure(offset, limit);
+            structure = dc.getStructure(settings.getItemsToSkip(), settings.getItemsToDownload());
         } catch (IOException e) {
             System.err.println("Fatal Error: could not get data structure.");
-            e.printStackTrace();
-            System.exit(1);
+            throw new ExitWithErrorException(e);
         }
 
         for (Map.Entry<String, List<Integer>> entry : structure.entrySet()) {
             String challengeSlug = entry.getKey();
-            HRChallenge currentChallenge;
+            Challenge currentChallenge;
             try {
                 currentChallenge = dc.getChallengeDetails(challengeSlug);
             } catch (IOException e) {
                 System.err.println("Error: could not get challenge info for: " + challengeSlug);
-                if (DownloaderSettings.beVerbose) {
+                if (settings.isVerbose()) {
                     e.printStackTrace();
                 }
                 continue;
             }
 
             for (Integer submissionId : entry.getValue()) {
-                HRSubmission submission;
+                Submission submission;
                 try {
                     submission = dc.getSubmissionDetails(submissionId);
                 } catch (IOException e) {
                     System.err.println("Error: could not get submission info for: " + submissionId);
-                    if (DownloaderSettings.beVerbose) {
+                    if (settings.isVerbose()) {
                         e.printStackTrace();
                     }
                     continue;
@@ -152,11 +109,12 @@ public class HackerrankDownloader {
 
         // Now dump all data to disk
         try {
-            for (HRChallenge currentChallenge : challenges) {
+            for (Challenge currentChallenge : challenges) {
                 if (currentChallenge.getSubmissions().isEmpty())
                     continue;
 
-                final String sChallengePath = DownloaderSettings.outputDir + "/" + currentChallenge.getSlug();
+                // fixme:
+                final String sChallengePath = settings.getOutputDir() + "/" + currentChallenge.getSlug();
                 final String sSolutionPath = sChallengePath + "/accepted_solutions";
                 final String sDescriptionPath = sChallengePath + "/problem_description";
 
@@ -168,7 +126,7 @@ public class HackerrankDownloader {
                 String sFname;
                 if (!plainBody.equals("null")) {
                     sFname = sDescriptionPath + "/english.txt";
-                    if (DownloaderSettings.beVerbose) {
+                    if (settings.isVerbose()) {
                         System.out.println("Writing to: " + sFname);
                     }
 
@@ -179,14 +137,14 @@ public class HackerrankDownloader {
                 String temporaryHtmlTemplate = "<html></body>" + htmlBody + "</body></html>";
 
                 sFname = sDescriptionPath + "/english.html";
-                if (DownloaderSettings.beVerbose) {
+                if (settings.isVerbose()) {
                     System.out.println("Writing to: " + sFname);
                 }
                 Files.write(Paths.get(sFname), temporaryHtmlTemplate.getBytes(StandardCharsets.UTF_8.name()));
 
-                for (HRSubmission submission : currentChallenge.getSubmissions()) {
+                for (Submission submission : currentChallenge.getSubmissions()) {
                     sFname = String.format("%s/%d.%s", sSolutionPath, submission.getId(), submission.getLanguage());
-                    if (DownloaderSettings.beVerbose) {
+                    if (settings.isVerbose()) {
                         System.out.println("Writing to: " + sFname);
                     }
 
@@ -195,56 +153,38 @@ public class HackerrankDownloader {
 
             }
         } catch (IOException e) {
-            System.err.println("Fatal Error: couldn't dump data to disk.");
-            System.exit(1);
+            throw new ExitWithErrorException("Fatal Error: couldn't dump data to disk.");
         }
     }
 
     /**
-     * @return {@link Options} object containing all valid options for this program
+     * Output directory logic:
+     * 1) if directory exists, ask for -f option to overwrite, quit with message
+     * 2) if -f flag is set, check if user has access to a parent directory
+     * 3) if no access, quit with error
+     * 4) if everything is OK, remember the path
      */
-    private static Options createCliOptions() {
-        final Options options = new Options();
-        options.addOption(Option.builder("h").longOpt("help")
-                .desc("display this help and exit")
-                .build());
-        options.addOption(Option.builder("d").longOpt("directory")
-                .hasArg(true)
-                .argName("PATH")
-                .desc("path to output directory. Default: current working directory")
-                .build());
-        options.addOption(Option.builder("f").longOpt("force-overwrite")
-                .desc("Force overwrite if output directory exists. May lead to data loss.")
-                .build());
-        options.addOption(Option.builder("l").longOpt("limit")
-                .hasArg(true)
-                .argName("NUMBER")
-                .type(Number.class)
-                .desc("number of solved challenges to download. Default is " + DownloaderSettings.ITEMS_TO_DOWNLOAD)
-                .build());
-        options.addOption(Option.builder("o").longOpt("offset")
-                .required(false)
-                .hasArg(true)
-                .argName("NUMBER")
-                .type(Number.class)
-                .desc("number of items to skip. Default is " + DownloaderSettings.ITEMS_TO_SKIP)
-                .build());
-        options.addOption(Option.builder("v").longOpt("verbose")
-                .required(false)
-                .desc("run in verbose mode")
-                .build());
-        return options;
-    }
-
-    static CommandLine parseArguments(String[] args) {
-        final CommandLineParser parser = new DefaultParser();
-        try {
-            return parser.parse(DownloaderSettings.cliOptions, args);
-        } catch (ParseException e) {
-            System.err.println("Fatal Error: " + e.getMessage());
-            System.exit(1);
+    private Path decideOnOutputDirectory() {
+        Path desiredDirectory = settings.getOutputDir();
+        if (settings.isVerbose()) {
+            System.out.println("Checking output dir: " + desiredDirectory);
         }
-        return null;
+        if (Files.exists(desiredDirectory) && Files.isDirectory(desiredDirectory)) {
+            if (settings.isForcedFilesOverwrite()) {
+                System.out.println("WARNING!"
+                        + System.lineSeparator()
+                        + "--force flag is set. Overwriting directory: "
+                        + desiredDirectory + System.lineSeparator()
+                        + "WARNING!");
+            } else {
+                throw new ExitWithErrorException("Directory exists: " + desiredDirectory
+                        + ", set the --force flag if you are sure. May lead to data loss, be careful.");
+            }
+        }
+        if ((Files.exists(desiredDirectory) && !Files.isWritable(desiredDirectory)) || !Files.isWritable(desiredDirectory.getParent())) {
+            throw new ExitWithErrorException("Fatal error: " + desiredDirectory + " cannot be created or modified. Check permissions.");
+        }
+        return desiredDirectory;
     }
 
     /**
@@ -256,7 +196,7 @@ public class HackerrankDownloader {
      * @return String representing a _hackerrank_session id, about 430 characters long.
      */
     private static String getSecretFromConfig() {
-        final String confPathStr = System.getProperty("user.home") + File.separator + DownloaderSettings.KEY_FILENAME;
+        final String confPathStr = System.getProperty("user.home") + File.separator + Settings.KEY_FILENAME;
         final Path confPath = Paths.get(confPathStr);
         String result = null;
         try {
@@ -265,7 +205,7 @@ public class HackerrankDownloader {
             System.err.println("Fatal Error: Unable to open configuration file " + confPathStr
                     + System.lineSeparator() + "File might be missing, empty or inaccessible by user."
                     + System.lineSeparator() + "It must contain a single ASCII line, a value of \""
-                    + DownloaderSettings.SECRET_COOKIE_ID + "\" cookie variable,"
+                    + Settings.SECRET_COOKIE_NAME + "\" cookie variable,"
                     + System.lineSeparator() + "which length is about 430 symbols.");
             System.exit(1);
         }
@@ -273,25 +213,4 @@ public class HackerrankDownloader {
         return result;
     }
 
-    private static void printHelp() {
-        HelpFormatter formatter = new HelpFormatter();
-        String sUsage = "java -jar ";
-        try {
-            sUsage += new File(HackerrankDownloader.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getName();
-        } catch (URISyntaxException e) {
-            sUsage += "hackerrank-downloader.jar";
-        }
-
-        String header = "";
-        String footer = System.lineSeparator() +
-                "If you are experiencing problems with JSON parser, "
-                + "try to run program with \"-Dfile.encoding=UTF-8\" option"
-                + System.lineSeparator() + System.lineSeparator()
-                + "Application expects a file " + DownloaderSettings.KEY_FILENAME
-                + " to be created in your home directory. "
-                + "It must contain a single ASCII line, a value of \""
-                + DownloaderSettings.SECRET_COOKIE_ID + "\" cookie variable, "
-                + "which length is about 430 symbols.";
-        formatter.printHelp(sUsage, header, DownloaderSettings.cliOptions, footer, true);
-    }
 }
