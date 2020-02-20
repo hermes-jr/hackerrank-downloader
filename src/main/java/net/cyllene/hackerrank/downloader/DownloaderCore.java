@@ -37,7 +37,7 @@ enum DownloaderCore {
     @Setter
     private HttpClient httpClient;
     @Setter
-    private Settings settings = new Settings(); // fixme: default settings, for tests
+    private Settings settings = new Settings(); // FIXME: default settings, for tests
 
     /**
      * @return TreeMap with IDs of challenges and submissions
@@ -177,7 +177,7 @@ enum DownloaderCore {
 
         String body = null;
         try {
-            body = handler.handleResponse(authenticateAndGetURL(Settings.HOST + url));
+            body = handler.handleResponse(authenticateAndGetURL(Settings.BASE_URL + url));
         } catch (IOException e) {
             e.printStackTrace();
         }

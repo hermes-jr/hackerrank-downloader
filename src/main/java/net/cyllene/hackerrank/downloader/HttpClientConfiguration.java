@@ -10,7 +10,7 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 class HttpClientConfiguration {
     static HttpClient httpClient(String secretKey) {
         BasicCookieStore cookieStore = new BasicCookieStore();
-        BasicClientCookie cookie = new BasicClientCookie(Settings.SECRET_COOKIE_NAME, secretKey);
+        BasicClientCookie cookie = new BasicClientCookie(Settings.COOKIE_NAME, secretKey);
         cookie.setDomain(Settings.DOMAIN);
         cookie.setPath("/");
         cookieStore.addCookie(cookie);

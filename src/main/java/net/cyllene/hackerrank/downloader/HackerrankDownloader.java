@@ -41,7 +41,7 @@ public class HackerrankDownloader implements Runnable {
 
     public static void main(String[] args) {
         // Parse and validate arguments, configure settings
-        Settings settings = null;
+        Settings settings;
         try {
             settings = CommandLineDispatcher.INSTANCE.parseArguments(args);
             HackerrankDownloader prog = new HackerrankDownloader(settings);
@@ -57,7 +57,7 @@ public class HackerrankDownloader implements Runnable {
 
     @Override
     public void run() {
-        Path desiredPath = decideOnOutputDirectory();
+        final Path desiredPath = ensureOutputDirectoryIsAvailable();
 
         DownloaderCore dc = DownloaderCore.INSTANCE;
         dc.setHttpClient(httpClient(SECRET_KEY));
@@ -65,9 +65,9 @@ public class HackerrankDownloader implements Runnable {
         List<Challenge> challenges = new LinkedList<>();
 
         // Download everything first
-        Map<String, List<Integer>> structure = null;
+        Map<String, List<Integer>> structure;
         try {
-            structure = dc.getStructure(settings.getItemsToSkip(), settings.getItemsToDownload());
+            structure = dc.getStructure(settings.getOffset(), settings.getLimit());
         } catch (IOException e) {
             System.err.println("Fatal Error: could not get data structure.");
             throw new ExitWithErrorException(e);
@@ -113,42 +113,42 @@ public class HackerrankDownloader implements Runnable {
                 if (currentChallenge.getSubmissions().isEmpty())
                     continue;
 
-                // fixme:
-                final String sChallengePath = settings.getOutputDir() + "/" + currentChallenge.getSlug();
-                final String sSolutionPath = sChallengePath + "/accepted_solutions";
-                final String sDescriptionPath = sChallengePath + "/problem_description";
+                final Path sChallengePath = desiredPath.resolve(currentChallenge.getSlug());
+                final Path sSolutionPath = sChallengePath.resolve("accepted_solutions");
+                final Path sDescriptionPath = sChallengePath.resolve("problem_description");
 
-                Files.createDirectories(Paths.get(sDescriptionPath));
-                Files.createDirectories(Paths.get(sSolutionPath));
+                Files.createDirectories(sDescriptionPath);
+                Files.createDirectories(sSolutionPath);
 
                 // FIXME: this should be done the other way
                 String plainBody = currentChallenge.getDescriptions().get(0).getBody();
-                String sFname;
+                Path problemFilePath;
                 if (!plainBody.equals("null")) {
-                    sFname = sDescriptionPath + "/english.txt";
+                    problemFilePath = sDescriptionPath.resolve("english.txt");
                     if (settings.isVerbose()) {
-                        System.out.println("Writing to: " + sFname);
+                        System.out.println("Writing to: " + problemFilePath);
                     }
 
-                    Files.write(Paths.get(sFname), plainBody.getBytes(StandardCharsets.UTF_8.name()));
+                    Files.write(problemFilePath, plainBody.getBytes(StandardCharsets.UTF_8.name()));
                 }
 
                 String htmlBody = currentChallenge.getDescriptions().get(0).getBodyHTML();
                 String temporaryHtmlTemplate = "<html></body>" + htmlBody + "</body></html>";
 
-                sFname = sDescriptionPath + "/english.html";
+                problemFilePath = sDescriptionPath.resolve("english.html");
                 if (settings.isVerbose()) {
-                    System.out.println("Writing to: " + sFname);
+                    System.out.println("Writing to: " + problemFilePath);
                 }
-                Files.write(Paths.get(sFname), temporaryHtmlTemplate.getBytes(StandardCharsets.UTF_8.name()));
+                Files.write(problemFilePath, temporaryHtmlTemplate.getBytes(StandardCharsets.UTF_8.name()));
 
                 for (Submission submission : currentChallenge.getSubmissions()) {
-                    sFname = String.format("%s/%d.%s", sSolutionPath, submission.getId(), submission.getLanguage());
+                    String solutionFilename = String.format("%d.%s", submission.getId(), submission.getLanguage());
+                    Path solutionFilePath = sSolutionPath.resolve(solutionFilename);
                     if (settings.isVerbose()) {
-                        System.out.println("Writing to: " + sFname);
+                        System.out.println("Writing to: " + solutionFilePath);
                     }
 
-                    Files.write(Paths.get(sFname), submission.getSourceCode().getBytes(StandardCharsets.UTF_8.name()));
+                    Files.write(solutionFilePath, submission.getSourceCode().getBytes(StandardCharsets.UTF_8.name()));
                 }
 
             }
@@ -159,12 +159,13 @@ public class HackerrankDownloader implements Runnable {
 
     /**
      * Output directory logic:
-     * 1) if directory exists, ask for -f option to overwrite, quit with message
-     * 2) if -f flag is set, check if user has access to a parent directory
-     * 3) if no access, quit with error
-     * 4) if everything is OK, remember the path
+     * <ol>
+     * <li> if directory exists, ask for -f option to overwrite, quit with message
+     * <li> having -f flag set, check if user has access to a parent directory, exit with error if denied
+     * <li> if everything is OK, use that path for output
+     * </ol>
      */
-    private Path decideOnOutputDirectory() {
+    private Path ensureOutputDirectoryIsAvailable() {
         Path desiredDirectory = settings.getOutputDir();
         if (settings.isVerbose()) {
             System.out.println("Checking output dir: " + desiredDirectory);
@@ -205,7 +206,7 @@ public class HackerrankDownloader implements Runnable {
             System.err.println("Fatal Error: Unable to open configuration file " + confPathStr
                     + System.lineSeparator() + "File might be missing, empty or inaccessible by user."
                     + System.lineSeparator() + "It must contain a single ASCII line, a value of \""
-                    + Settings.SECRET_COOKIE_NAME + "\" cookie variable,"
+                    + Settings.COOKIE_NAME + "\" cookie variable,"
                     + System.lineSeparator() + "which length is about 430 symbols.");
             System.exit(1);
         }

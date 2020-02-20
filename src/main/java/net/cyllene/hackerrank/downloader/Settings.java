@@ -24,15 +24,15 @@ import java.nio.file.Paths;
 @Data
 class Settings {
     public static final String DOMAIN = "www.hackerrank.com";
-    public static final String HOST = "https://" + DOMAIN;
-    public static final String SECRET_COOKIE_NAME = "_hrank_session";
+    public static final String BASE_URL = "https://" + DOMAIN;
+    public static final String COOKIE_NAME = "_hrank_session";
     public static final String KEY_FILENAME = ".hackerrank-downloader-key";
-    public static final int DEFAULT_ITEMS_TO_DOWNLOAD = 65535;
-    public static final int DEFAULT_ITEMS_TO_SKIP = 0;
+    public static final int DEFAULT_LIMIT = 65535;
+    public static final int DEFAULT_OFFSET = 0;
 
-    private Path outputDir = Paths.get("./hackerrank_challenges");
-    private int itemsToDownload = DEFAULT_ITEMS_TO_DOWNLOAD;
-    private int itemsToSkip = DEFAULT_ITEMS_TO_SKIP;
+    private Path outputDir = Paths.get("./hackerrank_challenges"); // FIXME: when a name without relative path is provided by user we get NPE
+    private int limit = DEFAULT_LIMIT;
+    private int offset = DEFAULT_OFFSET;
     private boolean verbose = false;
     private boolean forcedFilesOverwrite = false;
 }

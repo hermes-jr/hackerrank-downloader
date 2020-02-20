@@ -34,14 +34,14 @@ enum CommandLineDispatcher {
                 .hasArg(true)
                 .argName("NUMBER")
                 .type(Number.class)
-                .desc("number of solved challenges to download. Default is " + Settings.DEFAULT_ITEMS_TO_DOWNLOAD)
+                .desc("number of solved challenges to download. Default is " + Settings.DEFAULT_LIMIT)
                 .build());
         options.addOption(Option.builder("o").longOpt("offset")
                 .required(false)
                 .hasArg(true)
                 .argName("NUMBER")
                 .type(Number.class)
-                .desc("number of items to skip. Default is " + Settings.DEFAULT_ITEMS_TO_SKIP)
+                .desc("number of items to skip. Default is " + Settings.DEFAULT_OFFSET)
                 .build());
         options.addOption(Option.builder("v").longOpt("verbose")
                 .required(false)
@@ -85,7 +85,7 @@ enum CommandLineDispatcher {
         if (cmd.hasOption("limit")) {
             try {
                 int limit = ((Number) cmd.getParsedOptionValue("l")).intValue();
-                settings.setItemsToDownload(limit);
+                settings.setLimit(limit);
             } catch (ParseException e) {
                 throw new ExitWithErrorException("Incorrect limit: " + e.getMessage());
             }
@@ -94,7 +94,7 @@ enum CommandLineDispatcher {
         if (cmd.hasOption("offset")) {
             try {
                 int offset = ((Number) cmd.getParsedOptionValue("o")).intValue();
-                settings.setItemsToSkip(offset);
+                settings.setOffset(offset);
             } catch (ParseException e) {
                 throw new ExitWithErrorException("Incorrect offset: " + e.getMessage());
             }
@@ -120,7 +120,7 @@ enum CommandLineDispatcher {
                 + "Application expects a file " + Settings.KEY_FILENAME
                 + " to be created in your home directory. "
                 + "It must contain a single ASCII line, a value of \""
-                + Settings.SECRET_COOKIE_NAME + "\" cookie variable, "
+                + Settings.COOKIE_NAME + "\" cookie variable, "
                 + "which length is about 430 symbols.";
         formatter.printHelp(sUsage, header, cliOptions, footer, true);
     }

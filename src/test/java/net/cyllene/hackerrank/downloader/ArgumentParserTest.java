@@ -48,8 +48,6 @@ public class ArgumentParserTest {
                 CommandLineDispatcher.INSTANCE.parseArguments(
                         new String[]{"-v", "--help"})
         );
-
-//        assertTrue(e.getMessage().contains("If you are experiencing problems with JSON parser"));
     }
 
     @Test
@@ -76,7 +74,7 @@ public class ArgumentParserTest {
         Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(
                 new String[]{"--limit", "981"});
 
-        assertThat(settings.getItemsToDownload()).isEqualTo(981);
+        assertThat(settings.getLimit()).isEqualTo(981);
     }
 
     @Test
@@ -84,6 +82,19 @@ public class ArgumentParserTest {
         Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(
                 new String[]{"--offset", "463"});
 
-        assertThat(settings.getItemsToSkip()).isEqualTo(463);
+        assertThat(settings.getOffset()).isEqualTo(463);
+    }
+
+    @Test
+    public void directoryOptionShouldBeConsidered() {
+        Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(
+                new String[]{"--directory", "custom-out"});
+
+        assertThat(settings.getOutputDir().toString()).endsWith("custom-out");
+
+        settings = CommandLineDispatcher.INSTANCE.parseArguments(
+                new String[]{"-d", "another-custom-out"});
+
+        assertThat(settings.getOutputDir().toString()).endsWith("another-custom-out");
     }
 }
