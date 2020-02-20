@@ -15,13 +15,15 @@
  */
 package net.cyllene.hackerrank.downloader;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import net.cyllene.hackerrank.downloader.dto.Challenge;
 import net.cyllene.hackerrank.downloader.dto.ChallengeDescription;
-import net.cyllene.hackerrank.downloader.dto.Submission;
+import net.cyllene.hackerrank.downloader.dto.SubmissionSummary;
+import net.cyllene.hackerrank.downloader.dto.SubmissionsCollection;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -37,30 +39,26 @@ enum DownloaderCore {
     @Setter
     private HttpClient httpClient;
     @Setter
-    private Settings settings = new Settings(); // FIXME: default settings, for tests
+    private Settings settings;
 
     /**
      * @return TreeMap with IDs of challenges and submissions
      * @throws IOException mapper read failed
      */
-    public Map<String, List<Integer>> getStructure(int offset, int limit) throws IOException {
+    Map<String, List<Integer>> getStructure(int offset, int limit) throws IOException {
         Map<String, List<Integer>> result = new TreeMap<>();
 
         String body = getJsonStringFrom("/rest/contests/master/submissions/?offset=" + offset + "&limit=" + limit);
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        JsonNode jnRoot = mapper.readValue(body.getBytes(), JsonNode.class);
+        SubmissionsCollection submissions = mapper.readValue(body.getBytes(), SubmissionsCollection.class);
 
-        for (JsonNode jnChallenge : jnRoot.get("models")) {
-            List<Integer> currentChallengeSubmissions = new LinkedList<>();
-            String ci = jnChallenge.get("challenge").get("slug").asText();
-            // get challenge submissions at:
-            // https://www.hackerrank.com/rest/contests/master/challenges/birthday-cake-candles/submissions/?offset=0&limit=10
-            for (JsonNode jnSubmission : jnChallenge.get("submissions")) {
-                currentChallengeSubmissions.add(jnSubmission.get("id").asInt());
-                //ci = jnSubmission.get("slug").asText();
-            }
-            result.put(ci, currentChallengeSubmissions);
+        for (SubmissionSummary submissionSummary : submissions.getModels()) {
+            String slug = submissionSummary.getChallenge().getSlug();
+            List<Integer> currentChallengeSubmissions = result.getOrDefault(slug, new LinkedList<>());
+            currentChallengeSubmissions.add(submissionSummary.getId());
+            result.put(slug, currentChallengeSubmissions);
         }
 
         if (settings.isVerbose()) {
@@ -106,7 +104,7 @@ enum DownloaderCore {
     }
 
     /**
-     * Returns an assembled {@link Submission} object
+     * Returns an assembled {@link SubmissionSummary} object
      *
      * @param id Challenge id, which is passed to server in URL
      * @return {@link Challenge} object created from JSON returned by server
@@ -116,7 +114,7 @@ enum DownloaderCore {
     }
 
     /**
-     * Returns an assembled {@link Submission} object
+     * Returns an assembled {@link SubmissionSummary} object
      *
      * @param slug Challenge id (slug), which is passed to server in URL
      * @return {@link Challenge} object created from JSON returned by server
@@ -134,26 +132,27 @@ enum DownloaderCore {
         cleanCh.setSlug(jnChallenge.get("slug").asText());
         cleanCh.setName(jnChallenge.get("name").asText());
         cleanCh.setDescriptions(getChallengeDescriptions(body));
-        cleanCh.setSubmissions(new ArrayList<>());
+        cleanCh.setSubmissionSummaries(new ArrayList<>());
 
         return cleanCh;
     }
 
     /**
-     * Returns an assembled {@link Submission} object
+     * Returns an assembled {@link SubmissionSummary} object
      *
      * @param id Submission id, which is passed to server in URL
-     * @return {@link Submission} object created from JSON returned by server
+     * @return {@link SubmissionSummary} object created from JSON returned by server
      */
-    public Submission getSubmissionDetails(int id) throws IOException {
+    public SubmissionSummary getSubmissionDetails(int id) throws IOException {
         String body = getJsonStringFrom("/rest/contests/master/submissions/" + id);
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jnRoot = mapper.readValue(body.getBytes(), JsonNode.class);
 
         JsonNode jnSubmission = jnRoot.get("model");
-
-        return Submission.builder()
+        return null;
+/*
+        return SubmissionSummary.builder()
                 .id(jnSubmission.get("id").asInt())
                 .ctime(jnSubmission.get("created_at").asLong())
                 .statusCode(jnSubmission.get("status_code").asInt())
@@ -164,6 +163,7 @@ enum DownloaderCore {
                 .score(jnSubmission.get("score").asDouble())
                 .sourceCode(jnSubmission.get("code").asText().replaceAll("\n", System.lineSeparator()))
                 .build();
+*/
     }
 
     /**

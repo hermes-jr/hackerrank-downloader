@@ -18,7 +18,6 @@ package net.cyllene.hackerrank.downloader;
 
 import net.cyllene.hackerrank.downloader.dto.Challenge;
 import net.cyllene.hackerrank.downloader.dto.ChallengeDescription;
-import net.cyllene.hackerrank.downloader.dto.Submission;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
@@ -36,9 +35,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class JsonParsersTest {
@@ -46,77 +46,45 @@ public class JsonParsersTest {
     @Mock
     private HttpClient mockHttpClient;
 
+    private DownloaderCore dc;
+
     @BeforeEach
-    void initMocks() {
+    void init() {
         MockitoAnnotations.initMocks(this);
-    }
 
-    /**
-     * Test authenticateAndGetURL(String url) with a mock server response
-     */
-    @Test
-    public void testChallengeDescriptionParser() throws Exception {
-        String responseBody = getFakeData("/test_sample_submission.json");
-
-        HttpResponse response = prepareFakeResponse(200, responseBody);
-
-        when(mockHttpClient.execute(any(HttpUriRequest.class)))
-                .thenReturn(response);
-
-        DownloaderCore dc = DownloaderCore.INSTANCE;
+        dc = DownloaderCore.INSTANCE;
+        dc.setSettings(new Settings()); // Defaults
         dc.setHttpClient(mockHttpClient);
-        Submission candidate = dc.getSubmissionDetails(new Random().nextInt());
-
-        Submission reference = Submission.builder()
-                .id(100)
-                .ctime(999919L)
-                .statusCode(1)
-                .language("java")
-                .hackerId(222)
-                .sourceCode("import something\nexport something".replaceAll("\n", System.lineSeparator()))
-                .status("Accepted")
-                .kind("code")
-                .score(20.0)
-                .build();
-
-        System.out.println("Can: " + candidate);
-        System.out.println("Ref: " + reference);
-
-        assertThat(candidate).isEqualTo(reference);
     }
 
-    /**
-     * Test authenticateAndGetURL(String url) with a mock server response
-     */
     @Test
     public void getStructure() throws Exception {
-        String responseBody = getFakeData("/test_sample_list_of_submissions.json");
+        String responseBody = getFakeData("/submissions_list_sample.json");
 
-        HttpResponse response = prepareFakeResponse(200, responseBody);
+        HttpResponse response = prepareFakeSuccessResponse(responseBody);
 
         when(mockHttpClient.execute(any(HttpUriRequest.class)))
                 .thenReturn(response);
 
-        DownloaderCore dc = DownloaderCore.INSTANCE;
-        dc.setHttpClient(mockHttpClient);
-
         Map<String, List<Integer>> result = dc.getStructure(0, 10);
-        // There are 10 valid challenges in the sample json file
-        assertThat(result.size()).isEqualTo(10);
-        assertThat(result.containsKey("maximise-sum")).isTrue();
+        // There are 3 valid challenges in the sample json file
+        assertThat(result.values().stream().flatMap(List::stream).collect(Collectors.toSet())).hasSize(3);
+
+        // Grouped into 2 challenges
+        assertThat(result).hasSize(2);
+
+        // One of them is "birthday-cake-candles"
+        assertThat(result).containsKey("birthday-cake-candles");
     }
 
     @Test
     public void getChallengeDetails() throws Exception {
-        String responseBody = getFakeData("/test_sample_challenge_details.json");
+        String responseBody = getFakeData("/submission_details_sample.json");
 
-        HttpResponse response = prepareFakeResponse(200, responseBody);
+        HttpResponse response = prepareFakeSuccessResponse(responseBody);
 
         when(mockHttpClient.execute(any(HttpUriRequest.class)))
                 .thenReturn(response);
-
-        DownloaderCore dc = DownloaderCore.INSTANCE;
-        dc.setHttpClient(mockHttpClient);
 
         Challenge challenge = dc.getChallengeDetails(new Random().nextInt());
 
@@ -125,9 +93,8 @@ public class JsonParsersTest {
 
     @Test
     public void getChallengeDescriptions() throws Exception {
-        String jsonStr = getFakeData("/test_sample_challenge_details.json");
+        String jsonStr = getFakeData("/challenge_details_sample.json");
 
-        DownloaderCore dc = DownloaderCore.INSTANCE;
         List<ChallengeDescription> z = dc.getChallengeDescriptions(jsonStr);
 
         // There are 4 valid descriptions in the sample json file
@@ -136,11 +103,11 @@ public class JsonParsersTest {
         assertThat(z.size()).isEqualTo(4);
     }
 
-    private HttpResponse prepareFakeResponse(int expectedResponseStatus,
-                                             String expectedResponseBody) {
+    private HttpResponse prepareFakeSuccessResponse(String expectedResponseBody) {
+        int okCode = 200;
         HttpResponse response = new BasicHttpResponse(new BasicStatusLine(
-                new ProtocolVersion("HTTP", 1, 1), expectedResponseStatus, ""));
-        response.setStatusCode(expectedResponseStatus);
+                new ProtocolVersion("HTTP", 1, 1), okCode, ""));
+        response.setStatusCode(okCode);
         try {
             response.setEntity(new StringEntity(expectedResponseBody));
         } catch (Exception e) {

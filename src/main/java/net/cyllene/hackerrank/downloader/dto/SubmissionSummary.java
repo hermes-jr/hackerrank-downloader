@@ -17,14 +17,20 @@
 package net.cyllene.hackerrank.downloader.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 @Data
-public class Challenge {
-    private long ctime;
-    private String name;
-    private String slug;
-    private List<ChallengeDescription> descriptions;
-    private List<SubmissionSummary> submissionSummaries;
+@NoArgsConstructor
+public class SubmissionSummary {
+    private int id;
+    private long createdAt;
+    private int statusCode;
+    private String status;
+    private int hackerId;
+    private String kind;
+    private BigDecimal score;
+    private String language;
+    private ChallengeSummary challenge;
 }

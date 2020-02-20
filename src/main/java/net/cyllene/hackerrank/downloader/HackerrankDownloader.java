@@ -18,7 +18,7 @@ package net.cyllene.hackerrank.downloader;
 
 import lombok.RequiredArgsConstructor;
 import net.cyllene.hackerrank.downloader.dto.Challenge;
-import net.cyllene.hackerrank.downloader.dto.Submission;
+import net.cyllene.hackerrank.downloader.dto.SubmissionSummary;
 import net.cyllene.hackerrank.downloader.exceptions.ExitWithErrorException;
 import net.cyllene.hackerrank.downloader.exceptions.ExitWithHelpException;
 
@@ -87,9 +87,9 @@ public class HackerrankDownloader implements Runnable {
             }
 
             for (Integer submissionId : entry.getValue()) {
-                Submission submission;
+                SubmissionSummary submissionSummary;
                 try {
-                    submission = dc.getSubmissionDetails(submissionId);
+                    submissionSummary = dc.getSubmissionDetails(submissionId);
                 } catch (IOException e) {
                     System.err.println("Error: could not get submission info for: " + submissionId);
                     if (settings.isVerbose()) {
@@ -99,8 +99,8 @@ public class HackerrankDownloader implements Runnable {
                 }
 
                 // TODO: probably should move filtering logic elsewhere(getStructure, maybe)
-                if (submission.getStatus().equalsIgnoreCase("Accepted")) {
-                    currentChallenge.getSubmissions().add(submission);
+                if (submissionSummary.getStatus().equalsIgnoreCase("Accepted")) {
+                    currentChallenge.getSubmissionSummaries().add(submissionSummary);
                 }
             }
 
@@ -110,7 +110,7 @@ public class HackerrankDownloader implements Runnable {
         // Now dump all data to disk
         try {
             for (Challenge currentChallenge : challenges) {
-                if (currentChallenge.getSubmissions().isEmpty())
+                if (currentChallenge.getSubmissionSummaries().isEmpty())
                     continue;
 
                 final Path sChallengePath = desiredPath.resolve(currentChallenge.getSlug());
@@ -141,14 +141,14 @@ public class HackerrankDownloader implements Runnable {
                 }
                 Files.write(problemFilePath, temporaryHtmlTemplate.getBytes(StandardCharsets.UTF_8.name()));
 
-                for (Submission submission : currentChallenge.getSubmissions()) {
-                    String solutionFilename = String.format("%d.%s", submission.getId(), submission.getLanguage());
+                for (SubmissionSummary submissionSummary : currentChallenge.getSubmissionSummaries()) {
+                    String solutionFilename = String.format("%d.%s", submissionSummary.getId(), submissionSummary.getLanguage());
                     Path solutionFilePath = sSolutionPath.resolve(solutionFilename);
                     if (settings.isVerbose()) {
                         System.out.println("Writing to: " + solutionFilePath);
                     }
 
-                    Files.write(solutionFilePath, submission.getSourceCode().getBytes(StandardCharsets.UTF_8.name()));
+//                    Files.write(solutionFilePath, submissionSummary.getSourceCode().getBytes(StandardCharsets.UTF_8.name()));
                 }
 
             }

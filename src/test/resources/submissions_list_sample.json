@@ -1,0 +1,68 @@
+{
+  "models": [
+    {
+      "id": 92273619,
+      "challenge_id": 23074,
+      "contest_id": 1,
+      "hacker_id": 1022707,
+      "status": "Accepted",
+      "kind": "code",
+      "created_at": 1544049532,
+      "language": "go",
+      "hacker_username": null,
+      "time_ago": "about 1 year",
+      "in_contest_bounds": true,
+      "status_code": 2,
+      "score": "10.0",
+      "is_preliminary_score": null,
+      "challenge": {
+        "name": "Birthday Cake Candles",
+        "slug": "birthday-cake-candles"
+      },
+      "inserttime": 1544049533
+    },
+    {
+      "id": 92273476,
+      "challenge_id": 23074,
+      "contest_id": 1,
+      "hacker_id": 1022707,
+      "status": "Wrong Answer",
+      "kind": "code",
+      "created_at": 1544049335,
+      "language": "go",
+      "hacker_username": null,
+      "time_ago": "about 1 year",
+      "in_contest_bounds": true,
+      "status_code": 1,
+      "score": "9.74",
+      "is_preliminary_score": null,
+      "challenge": {
+        "name": "Birthday Cake Candles",
+        "slug": "birthday-cake-candles"
+      },
+      "inserttime": 1544049335
+    },
+    {
+      "id": 92272897,
+      "challenge_id": 26276,
+      "contest_id": 1,
+      "hacker_id": 1022707,
+      "status": "Accepted",
+      "kind": "code",
+      "created_at": 1544048565,
+      "language": "go",
+      "hacker_username": null,
+      "time_ago": "about 1 year",
+      "in_contest_bounds": true,
+      "status_code": 2,
+      "score": "10.0",
+      "is_preliminary_score": null,
+      "challenge": {
+        "name": "Mini-Max Sum",
+        "slug": "mini-max-sum"
+      },
+      "inserttime": 1544048565
+    }
+  ],
+  "total": 3
+}

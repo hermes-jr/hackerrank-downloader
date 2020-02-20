@@ -16,20 +16,10 @@
 
 package net.cyllene.hackerrank.downloader.dto;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
-public class Submission {
-    private final int id;
-    private final String status;
-    private final long ctime;
-    private final int statusCode;
-    private final String sourceCode;
-    private final int hackerId;
-    private final String kind;
-    private final double score;
-    private final String language;
-    private final Challenge challenge;
+public class ChallengeSummary {
+    private String name;
+    private String slug;
 }
