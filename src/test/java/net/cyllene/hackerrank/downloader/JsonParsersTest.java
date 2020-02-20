@@ -16,8 +16,8 @@
 
 package net.cyllene.hackerrank.downloader;
 
-import net.cyllene.hackerrank.downloader.dto.Challenge;
-import net.cyllene.hackerrank.downloader.dto.ChallengeDescription;
+import net.cyllene.hackerrank.downloader.dto.ChallengeDetails;
+import net.cyllene.hackerrank.downloader.dto.SubmissionDetails;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
@@ -33,7 +33,6 @@ import org.mockito.MockitoAnnotations;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
@@ -46,19 +45,21 @@ public class JsonParsersTest {
     @Mock
     private HttpClient mockHttpClient;
 
-    private DownloaderCore dc;
+    private ChallengesRepository dc;
 
     @BeforeEach
     void init() {
         MockitoAnnotations.initMocks(this);
 
-        dc = DownloaderCore.INSTANCE;
-        dc.setSettings(new Settings()); // Defaults
+        dc = ChallengesRepository.INSTANCE;
+        Settings testEnvironmentSettings = new Settings();
+        testEnvironmentSettings.setAcceptedOnly(false);
+        dc.setSettings(testEnvironmentSettings);
         dc.setHttpClient(mockHttpClient);
     }
 
     @Test
-    public void getStructure() throws Exception {
+    void submissionsListShouldBeParsed() throws Exception {
         String responseBody = getFakeData("/submissions_list_sample.json");
 
         HttpResponse response = prepareFakeSuccessResponse(responseBody);
@@ -66,7 +67,7 @@ public class JsonParsersTest {
         when(mockHttpClient.execute(any(HttpUriRequest.class)))
                 .thenReturn(response);
 
-        Map<String, List<Integer>> result = dc.getStructure(0, 10);
+        Map<String, List<Long>> result = dc.getSubmissionsList(0, 10);
         // There are 3 valid challenges in the sample json file
         assertThat(result.values().stream().flatMap(List::stream).collect(Collectors.toSet())).hasSize(3);
 
@@ -78,7 +79,23 @@ public class JsonParsersTest {
     }
 
     @Test
-    public void getChallengeDetails() throws Exception {
+    void challengeDetailsShouldBeParsed() throws Exception {
+        String responseBody = getFakeData("/challenge_details_sample.json");
+
+        HttpResponse response = prepareFakeSuccessResponse(responseBody);
+
+        when(mockHttpClient.execute(any(HttpUriRequest.class)))
+                .thenReturn(response);
+
+        ChallengeDetails challenge = dc.getChallengeDetails("stub-slug");
+
+        assertThat(challenge.getPreview()).isEqualTo("Find the maximum and minimum values obtained by summing four of five integers.");
+
+        assertThat(challenge.getBodyHtml()).contains("challenge_problem_statement");
+    }
+
+    @Test
+    void submissionCodeShouldBeAvailable() throws Exception {
         String responseBody = getFakeData("/submission_details_sample.json");
 
         HttpResponse response = prepareFakeSuccessResponse(responseBody);
@@ -86,21 +103,13 @@ public class JsonParsersTest {
         when(mockHttpClient.execute(any(HttpUriRequest.class)))
                 .thenReturn(response);
 
-        Challenge challenge = dc.getChallengeDetails(new Random().nextInt());
+        SubmissionDetails submissionDetails = dc.getSubmissionDetails(92273619);
 
-        System.out.println(challenge);
-    }
-
-    @Test
-    public void getChallengeDescriptions() throws Exception {
-        String jsonStr = getFakeData("/challenge_details_sample.json");
-
-        List<ChallengeDescription> z = dc.getChallengeDescriptions(jsonStr);
-
-        // There are 4 valid descriptions in the sample json file
-        System.out.println(z);
-
-        assertThat(z.size()).isEqualTo(4);
+        assertThat(submissionDetails.getId()).isEqualTo(92273619);
+        assertThat(submissionDetails.getLanguage()).isEqualTo("go");
+        assertThat(submissionDetails.getCode())
+                .contains("source code")
+                .contains("multiline");
     }
 
     private HttpResponse prepareFakeSuccessResponse(String expectedResponseBody) {

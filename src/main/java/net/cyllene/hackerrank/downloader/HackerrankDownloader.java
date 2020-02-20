@@ -17,8 +17,8 @@
 package net.cyllene.hackerrank.downloader;
 
 import lombok.RequiredArgsConstructor;
-import net.cyllene.hackerrank.downloader.dto.Challenge;
-import net.cyllene.hackerrank.downloader.dto.SubmissionSummary;
+import net.cyllene.hackerrank.downloader.dto.ChallengeDetails;
+import net.cyllene.hackerrank.downloader.dto.SubmissionDetails;
 import net.cyllene.hackerrank.downloader.exceptions.ExitWithErrorException;
 import net.cyllene.hackerrank.downloader.exceptions.ExitWithHelpException;
 
@@ -28,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -59,55 +58,57 @@ public class HackerrankDownloader implements Runnable {
     public void run() {
         final Path desiredPath = ensureOutputDirectoryIsAvailable();
 
-        DownloaderCore dc = DownloaderCore.INSTANCE;
+        ChallengesRepository dc = ChallengesRepository.INSTANCE;
+        dc.setSettings(settings);
         dc.setHttpClient(httpClient(SECRET_KEY));
 
-        List<Challenge> challenges = new LinkedList<>();
-
         // Download everything first
-        Map<String, List<Integer>> structure;
+        Map<String, List<Long>> structure;
         try {
-            structure = dc.getStructure(settings.getOffset(), settings.getLimit());
+            structure = dc.getSubmissionsList(settings.getOffset(), settings.getLimit());
         } catch (IOException e) {
-            System.err.println("Fatal Error: could not get data structure.");
-            throw new ExitWithErrorException(e);
+            throw new ExitWithErrorException("Fatal Error: could not get data structure.");
         }
 
-        for (Map.Entry<String, List<Integer>> entry : structure.entrySet()) {
+        for (Map.Entry<String, List<Long>> entry : structure.entrySet()) {
             String challengeSlug = entry.getKey();
-            Challenge currentChallenge;
+            ChallengeDetails currentChallenge;
             try {
                 currentChallenge = dc.getChallengeDetails(challengeSlug);
             } catch (IOException e) {
-                System.err.println("Error: could not get challenge info for: " + challengeSlug);
                 if (settings.isVerbose()) {
                     e.printStackTrace();
                 }
+                System.out.println("Error: could not get challenge info for: " + challengeSlug);
                 continue;
             }
 
-            for (Integer submissionId : entry.getValue()) {
-                SubmissionSummary submissionSummary;
+            for (Long submissionId : entry.getValue()) {
+                SubmissionDetails submissionSummary;
                 try {
                     submissionSummary = dc.getSubmissionDetails(submissionId);
                 } catch (IOException e) {
-                    System.err.println("Error: could not get submission info for: " + submissionId);
                     if (settings.isVerbose()) {
                         e.printStackTrace();
                     }
+                    System.err.println("Error: could not get submission info for: " + submissionId);
                     continue;
                 }
 
-                // TODO: probably should move filtering logic elsewhere(getStructure, maybe)
-                if (submissionSummary.getStatus().equalsIgnoreCase("Accepted")) {
-                    currentChallenge.getSubmissionSummaries().add(submissionSummary);
+/*
+                if (settings.isVerbose()) {
+                    System.out.printf("Challenge %s\nslug %s\nsubmission id %s\ncode %s\n\n",
+                            currentChallenge.getId(), currentChallenge.getSlug(), submissionId, submissionSummary.getCode());
                 }
+*/
+                // TODO: save file
             }
 
-            challenges.add(currentChallenge);
+            // currentChallenge add
         }
 
         // Now dump all data to disk
+/*
         try {
             for (Challenge currentChallenge : challenges) {
                 if (currentChallenge.getSubmissionSummaries().isEmpty())
@@ -155,6 +156,7 @@ public class HackerrankDownloader implements Runnable {
         } catch (IOException e) {
             throw new ExitWithErrorException("Fatal Error: couldn't dump data to disk.");
         }
+*/
     }
 
     /**

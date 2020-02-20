@@ -23,16 +23,18 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 /**
- * /rest/contests/master/submissions/
+ * /rest/contests/master/challenges/{slug}/submissions/{id}
+ * /rest/contests/master/submissions/{id}
  */
 @Data
 @NoArgsConstructor
-public class SubmissionSummary {
+public class SubmissionDetails {
     private long id;
     @JsonProperty("challenge_id")
     private long challengeId;
-    @JsonProperty("created_at")
-    private long createdAt;
+    //    @JsonProperty("created_at")
+//    @JsonDeserialize(using = LocalDateDeserializer.class)
+//    private LocalDateTime createdAt;
     @JsonProperty("status_code")
     private int statusCode;
     private String status;
@@ -41,5 +43,8 @@ public class SubmissionSummary {
     private String kind;
     private BigDecimal score;
     private String language;
-    private ChallengeSummary challenge;
+    /**
+     * Source code
+     */
+    private String code;
 }

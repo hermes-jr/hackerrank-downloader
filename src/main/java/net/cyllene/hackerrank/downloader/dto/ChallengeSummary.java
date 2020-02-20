@@ -17,8 +17,10 @@
 package net.cyllene.hackerrank.downloader.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class ChallengeSummary {
     private String name;
     private String slug;

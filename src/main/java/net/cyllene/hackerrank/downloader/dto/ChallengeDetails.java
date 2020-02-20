@@ -16,15 +16,28 @@
 
 package net.cyllene.hackerrank.downloader.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
-
+/**
+ * /rest/contests/master/challenges/{id}
+ */
 @Data
-public class Challenge {
-    private long ctime;
-    private String name;
+@NoArgsConstructor
+public class ChallengeDetails {
+    private long id;
+    /**
+     * Part of url
+     */
     private String slug;
-    private List<ChallengeDescription> descriptions;
-    private List<SubmissionSummary> submissionSummaries;
+    /**
+     * contains a UTF-8 string with HTML markup
+     */
+    @JsonProperty("body_html")
+    private String bodyHtml;
+    /**
+     * Short description
+     */
+    private String preview;
 }

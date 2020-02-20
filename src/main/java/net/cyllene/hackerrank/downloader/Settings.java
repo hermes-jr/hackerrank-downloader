@@ -29,10 +29,12 @@ class Settings {
     public static final String KEY_FILENAME = ".hackerrank-downloader-key";
     public static final int DEFAULT_LIMIT = 65535;
     public static final int DEFAULT_OFFSET = 0;
+    public static final int STATUS_CODE_ACCEPTED = 2;
 
     private Path outputDir = Paths.get("./hackerrank_challenges"); // FIXME: when a name without relative path is provided by user we get NPE
     private int limit = DEFAULT_LIMIT;
     private int offset = DEFAULT_OFFSET;
     private boolean verbose = false;
     private boolean forcedFilesOverwrite = false;
+    private boolean acceptedOnly = true;
 }
