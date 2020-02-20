@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -106,6 +107,7 @@ public class JsonParsersTest {
         SubmissionDetails submissionDetails = dc.getSubmissionDetails(92273619);
 
         assertThat(submissionDetails.getId()).isEqualTo(92273619);
+        assertThat(submissionDetails.getCreatedAt().toLocalDate()).isEqualTo(LocalDate.of(2018, 12, 5));
         assertThat(submissionDetails.getLanguage()).isEqualTo("go");
         assertThat(submissionDetails.getCode())
                 .contains("source code")

@@ -17,10 +17,13 @@
 package net.cyllene.hackerrank.downloader.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * /rest/contests/master/challenges/{slug}/submissions/{id}
@@ -32,9 +35,9 @@ public class SubmissionDetails {
     private long id;
     @JsonProperty("challenge_id")
     private long challengeId;
-    //    @JsonProperty("created_at")
-//    @JsonDeserialize(using = LocalDateDeserializer.class)
-//    private LocalDateTime createdAt;
+    @JsonProperty("created_at")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime createdAt;
     @JsonProperty("status_code")
     private int statusCode;
     private String status;
