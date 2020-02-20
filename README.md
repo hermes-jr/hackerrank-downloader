@@ -1,6 +1,6 @@
 # HackerRank Submissions Downloader 
 
-[![Build Status][build_status_svg]][build_status_link]
+[![Build Status](https://travis-ci.org/hermes-jr/hackerrank-get-my-solutions.svg?branch=master)](https://travis-ci.org/hermes-jr/hackerrank-get-my-solutions)
 
 ## Usage
 
@@ -20,5 +20,3 @@ Application expects a file .hackerrank-downloader-key to exist in your
 home directory. It must contain a single ASCII line, a value of
 "_hrank_session" cookie variable
 ```
-
-[build_status_link]: https://travis-ci.org/hermes-jr/hackerrank-get-my-solutions.svg?branch=master
