@@ -9,13 +9,21 @@ import java.net.URISyntaxException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 
+/**
+ * Singleton-ish service responsible for parsing command line parameters and creating a
+ * {@link Settings} object to be used as the program state
+ * <p>
+ * Supposed to be injected into the main program.
+ */
 enum CommandLineDispatcher {
     INSTANCE;
 
     Options cliOptions = createCliOptions();
 
     /**
-     * @return {@link Options} object containing all valid options for this program
+     * Creates a set of all configurable options to be used with {@link CommandLineParser}
+     *
+     * @return {@link Options} with all valid options for this program
      */
     private Options createCliOptions() {
         final Options options = new Options();
@@ -50,6 +58,14 @@ enum CommandLineDispatcher {
         return options;
     }
 
+    /**
+     * Create {@link Settings} with parameters derived from user-provided command line parameters.
+     *
+     * @param args arguments array (from main() for example)
+     * @return an object to be used as the program state
+     * @throws ExitWithErrorException when malformed input is supplied by user
+     * @throws ExitWithHelpException  when --help option is supplied by user
+     */
     Settings parseArguments(String[] args) {
         final CommandLineParser parser = new DefaultParser();
 
@@ -67,6 +83,13 @@ enum CommandLineDispatcher {
         return buildSettings(cmd);
     }
 
+    /**
+     * Create {@link Settings} with parameters derived from user-provided command line parameters.
+     *
+     * @param cmd the result of parsing user-provided parameters
+     * @return an object to be used as the program state
+     * @throws ExitWithErrorException when malformed input is supplied by user
+     */
     private Settings buildSettings(CommandLine cmd) {
         Settings settings = new Settings();
 
@@ -103,6 +126,9 @@ enum CommandLineDispatcher {
         return settings;
     }
 
+    /**
+     * Print usage info to stdout
+     */
     void printHelp() {
         HelpFormatter formatter = new HelpFormatter();
         String sUsage = "java -jar ";
@@ -115,13 +141,12 @@ enum CommandLineDispatcher {
         String header = "";
         String footer = System.lineSeparator() +
                 "If you are experiencing problems with JSON parser, "
-                + "try to run program with \"-Dfile.encoding=UTF-8\" option"
+                + "try to run the program with \"-Dfile.encoding=UTF-8\" option"
                 + System.lineSeparator() + System.lineSeparator()
                 + "Application expects a file " + Settings.KEY_FILENAME
-                + " to be created in your home directory. "
+                + " to exist in your home directory. "
                 + "It must contain a single ASCII line, a value of \""
-                + Settings.COOKIE_NAME + "\" cookie variable, "
-                + "which length is about 430 symbols.";
+                + Settings.COOKIE_NAME + "\" cookie variable";
         formatter.printHelp(sUsage, header, cliOptions, footer, true);
     }
 

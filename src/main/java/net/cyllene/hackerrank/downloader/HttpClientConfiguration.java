@@ -7,6 +7,11 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
+/**
+ * Sort of a bean factory.
+ * <p>
+ * Creates a configured {@link HttpClient} to be injected into {@link ChallengesRepository}
+ */
 class HttpClientConfiguration {
     static HttpClient httpClient(String secretKey) {
         BasicCookieStore cookieStore = new BasicCookieStore();

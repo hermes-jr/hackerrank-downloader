@@ -53,9 +53,7 @@ public class JsonParsersTest {
         MockitoAnnotations.initMocks(this);
 
         dc = ChallengesRepository.INSTANCE;
-        Settings testEnvironmentSettings = new Settings();
-        testEnvironmentSettings.setAcceptedOnly(false);
-        dc.setSettings(testEnvironmentSettings);
+        dc.setSettings(new Settings()); // Defaults
         dc.setHttpClient(mockHttpClient);
     }
 
@@ -67,6 +65,10 @@ public class JsonParsersTest {
 
         when(mockHttpClient.execute(any(HttpUriRequest.class)))
                 .thenReturn(response);
+
+        Settings downloadEverything = new Settings();
+        downloadEverything.setAcceptedOnly(false);
+        dc.setSettings(downloadEverything);
 
         Map<String, List<Long>> result = dc.getSubmissionsList(0, 10);
         // There are 3 valid challenges in the sample json file
@@ -107,6 +109,7 @@ public class JsonParsersTest {
         SubmissionDetails submissionDetails = dc.getSubmissionDetails(92273619);
 
         assertThat(submissionDetails.getId()).isEqualTo(92273619);
+
         assertThat(submissionDetails.getCreatedAt().toLocalDate()).isEqualTo(LocalDate.of(2018, 12, 5));
         assertThat(submissionDetails.getLanguage()).isEqualTo("go");
         assertThat(submissionDetails.getCode())

@@ -31,13 +31,20 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
+/**
+ * Singleton-ish repository.
+ * <p>
+ * Provides data in form of DTOs for further processing.
+ * <p>
+ * Supposed to be injected into the main program.
+ */
 enum ChallengesRepository {
-    INSTANCE; // Singleton
+    INSTANCE;
     @Setter
     private HttpClient httpClient;
     @Setter
@@ -46,11 +53,11 @@ enum ChallengesRepository {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /**
-     * @return TreeMap with IDs of challenges and submissions
+     * @return map with IDs of challenges grouped by submissions
      * @throws IOException mapper read failed
      */
     Map<String, List<Long>> getSubmissionsList(int offset, int limit) throws IOException {
-        Map<String, List<Long>> result = new TreeMap<>();
+        Map<String, List<Long>> result = new HashMap<>();
 
         String body = getJsonStringFrom("/rest/contests/master/submissions/?offset=" + offset + "&limit=" + limit);
 

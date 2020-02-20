@@ -35,16 +35,24 @@ import static net.cyllene.hackerrank.downloader.HttpClientConfiguration.httpClie
 
 @RequiredArgsConstructor
 public class HackerrankDownloader implements Runnable {
-    static final String SECRET_KEY = getSecretFromConfig();
+    static final String SECRET_KEY = getSessionFromDotFile();
     private final Settings settings;
+    private final ChallengesRepository dc;
 
     public static void main(String[] args) {
-        // Parse and validate arguments, configure settings
-        Settings settings;
         try {
-            settings = CommandLineDispatcher.INSTANCE.parseArguments(args);
-            HackerrankDownloader prog = new HackerrankDownloader(settings);
-            prog.run();
+            // Parse and validate arguments, configure settings
+            Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(args);
+
+            // Initialize data repository, inject dependencies
+            ChallengesRepository dc = ChallengesRepository.INSTANCE;
+            dc.setSettings(settings);
+            dc.setHttpClient(httpClient(SECRET_KEY));
+
+            // Initialize main class
+            HackerrankDownloader downloader = new HackerrankDownloader(settings, dc);
+
+            downloader.run();
         } catch (ExitWithHelpException e) {
             CommandLineDispatcher.INSTANCE.printHelp();
             System.exit(0);
@@ -56,107 +64,98 @@ public class HackerrankDownloader implements Runnable {
 
     @Override
     public void run() {
-        final Path desiredPath = ensureOutputDirectoryIsAvailable();
+        ensureOutputDirectoryIsAvailable();
 
-        ChallengesRepository dc = ChallengesRepository.INSTANCE;
-        dc.setSettings(settings);
-        dc.setHttpClient(httpClient(SECRET_KEY));
-
-        // Download everything first
-        Map<String, List<Long>> structure;
+        Map<String, List<Long>> groupedSubmissionIds;
         try {
-            structure = dc.getSubmissionsList(settings.getOffset(), settings.getLimit());
+            groupedSubmissionIds = dc.getSubmissionsList(settings.getOffset(), settings.getLimit());
         } catch (IOException e) {
-            throw new ExitWithErrorException("Fatal Error: could not get data structure.");
+            throw new ExitWithErrorException("Fatal Error: could not get submissions list.");
         }
 
-        for (Map.Entry<String, List<Long>> entry : structure.entrySet()) {
+        for (Map.Entry<String, List<Long>> entry : groupedSubmissionIds.entrySet()) {
             String challengeSlug = entry.getKey();
-            ChallengeDetails currentChallenge;
+            downloadAndSaveChallenge(challengeSlug, entry.getValue());
+        }
+    }
+
+    private void downloadAndSaveChallenge(String challengeSlug, Iterable<Long> submissionIds) {
+        ChallengeDetails currentChallenge;
+        try {
+            currentChallenge = dc.getChallengeDetails(challengeSlug);
+        } catch (IOException e) {
+            if (settings.isVerbose()) {
+                e.printStackTrace();
+            }
+            System.out.println("Error: could not get challenge info for: " + challengeSlug);
+            return;
+        }
+
+        dumpChallengeToFiles(currentChallenge);
+
+        for (Long submissionId : submissionIds) {
+            SubmissionDetails submissionSummary;
             try {
-                currentChallenge = dc.getChallengeDetails(challengeSlug);
+                submissionSummary = dc.getSubmissionDetails(submissionId);
+
+                dumpSubmissionToFile(challengeSlug, submissionSummary);
             } catch (IOException e) {
                 if (settings.isVerbose()) {
                     e.printStackTrace();
                 }
-                System.out.println("Error: could not get challenge info for: " + challengeSlug);
-                continue;
+                System.err.println("Error: could not get submission info for: " + submissionId);
+                return;
             }
-
-            for (Long submissionId : entry.getValue()) {
-                SubmissionDetails submissionSummary;
-                try {
-                    submissionSummary = dc.getSubmissionDetails(submissionId);
-                } catch (IOException e) {
-                    if (settings.isVerbose()) {
-                        e.printStackTrace();
-                    }
-                    System.err.println("Error: could not get submission info for: " + submissionId);
-                    continue;
-                }
-
-/*
-                if (settings.isVerbose()) {
-                    System.out.printf("Challenge %s\nslug %s\nsubmission id %s\ncode %s\n\n",
-                            currentChallenge.getId(), currentChallenge.getSlug(), submissionId, submissionSummary.getCode());
-                }
-*/
-                // TODO: save file
-            }
-
-            // currentChallenge add
         }
+    }
 
-        // Now dump all data to disk
-/*
+    private void dumpSubmissionToFile(String challengeSlug, SubmissionDetails submissionSummary) {
+        final Path sChallengePath = settings.getOutputDir().resolve(challengeSlug);
+        final Path sSolutionPath = sChallengePath.resolve("accepted_solutions");
+
         try {
-            for (Challenge currentChallenge : challenges) {
-                if (currentChallenge.getSubmissionSummaries().isEmpty())
-                    continue;
-
-                final Path sChallengePath = desiredPath.resolve(currentChallenge.getSlug());
-                final Path sSolutionPath = sChallengePath.resolve("accepted_solutions");
-                final Path sDescriptionPath = sChallengePath.resolve("problem_description");
-
-                Files.createDirectories(sDescriptionPath);
-                Files.createDirectories(sSolutionPath);
-
-                // FIXME: this should be done the other way
-                String plainBody = currentChallenge.getDescriptions().get(0).getBody();
-                Path problemFilePath;
-                if (!plainBody.equals("null")) {
-                    problemFilePath = sDescriptionPath.resolve("english.txt");
-                    if (settings.isVerbose()) {
-                        System.out.println("Writing to: " + problemFilePath);
-                    }
-
-                    Files.write(problemFilePath, plainBody.getBytes(StandardCharsets.UTF_8.name()));
-                }
-
-                String htmlBody = currentChallenge.getDescriptions().get(0).getBodyHTML();
-                String temporaryHtmlTemplate = "<html></body>" + htmlBody + "</body></html>";
-
-                problemFilePath = sDescriptionPath.resolve("english.html");
-                if (settings.isVerbose()) {
-                    System.out.println("Writing to: " + problemFilePath);
-                }
-                Files.write(problemFilePath, temporaryHtmlTemplate.getBytes(StandardCharsets.UTF_8.name()));
-
-                for (SubmissionSummary submissionSummary : currentChallenge.getSubmissionSummaries()) {
-                    String solutionFilename = String.format("%d.%s", submissionSummary.getId(), submissionSummary.getLanguage());
-                    Path solutionFilePath = sSolutionPath.resolve(solutionFilename);
-                    if (settings.isVerbose()) {
-                        System.out.println("Writing to: " + solutionFilePath);
-                    }
-
-//                    Files.write(solutionFilePath, submissionSummary.getSourceCode().getBytes(StandardCharsets.UTF_8.name()));
-                }
-
-            }
+            Files.createDirectories(sSolutionPath);
         } catch (IOException e) {
-            throw new ExitWithErrorException("Fatal Error: couldn't dump data to disk.");
+            throw new ExitWithErrorException("Unable to create solutions directory for challenge: " + challengeSlug);
         }
-*/
+
+        String solutionFilename = String.format("%d.%s", submissionSummary.getId(), submissionSummary.getLanguage());
+        Path solutionFilePath = sSolutionPath.resolve(solutionFilename);
+
+        if (settings.isVerbose()) {
+            System.out.println("Writing: " + solutionFilePath);
+        }
+
+        try {
+            Files.write(solutionFilePath, submissionSummary.getCode().getBytes(StandardCharsets.UTF_8.name()));
+        } catch (IOException e) {
+            throw new ExitWithErrorException(e);
+        }
+    }
+
+    private void dumpChallengeToFiles(ChallengeDetails currentChallenge) {
+        final Path sChallengePath = settings.getOutputDir().resolve(currentChallenge.getSlug());
+        final Path sDescriptionPath = sChallengePath.resolve("problem_description");
+
+        try {
+            Files.createDirectories(sDescriptionPath);
+        } catch (IOException e) {
+            throw new ExitWithErrorException("Unable to create problems directory for challenge: " + currentChallenge.getSlug());
+        }
+
+        String htmlBody = currentChallenge.getBodyHtml();
+        String temporaryHtmlTemplate = "<html></body>" + htmlBody + "</body></html>";
+
+        Path problemFilePath = sDescriptionPath.resolve("english.html");
+        if (settings.isVerbose()) {
+            System.out.println("Writing: " + problemFilePath);
+        }
+
+        try {
+            Files.write(problemFilePath, temporaryHtmlTemplate.getBytes(StandardCharsets.UTF_8.name()));
+        } catch (IOException e) {
+            throw new ExitWithErrorException(e);
+        }
     }
 
     /**
@@ -167,10 +166,10 @@ public class HackerrankDownloader implements Runnable {
      * <li> if everything is OK, use that path for output
      * </ol>
      */
-    private Path ensureOutputDirectoryIsAvailable() {
+    private void ensureOutputDirectoryIsAvailable() {
         Path desiredDirectory = settings.getOutputDir();
         if (settings.isVerbose()) {
-            System.out.println("Checking output dir: " + desiredDirectory);
+            System.out.println("Checking if output dir " + desiredDirectory + " is available");
         }
         if (Files.exists(desiredDirectory) && Files.isDirectory(desiredDirectory)) {
             if (settings.isForcedFilesOverwrite()) {
@@ -184,21 +183,21 @@ public class HackerrankDownloader implements Runnable {
                         + ", set the --force flag if you are sure. May lead to data loss, be careful.");
             }
         }
+        // FIXME: when a name without relative path is provided by user we get NPE (.getParent)
         if ((Files.exists(desiredDirectory) && !Files.isWritable(desiredDirectory)) || !Files.isWritable(desiredDirectory.getParent())) {
             throw new ExitWithErrorException("Fatal error: " + desiredDirectory + " cannot be created or modified. Check permissions.");
         }
-        return desiredDirectory;
     }
 
     /**
      * Gets a secret key from configuration file in user.home.
-     * The secret key is a _hackerrank_session variable stored in cookies by server.
+     * The secret key is a _hrank_session variable stored in cookies by server.
      * To simplify things, no login logic is present in this program, it means
      * you should login somewhere else and then provide this value in the config.
      *
-     * @return String representing a _hackerrank_session id, about 430 characters long.
+     * @return String representing a _hrank_session id, about 430 characters long.
      */
-    private static String getSecretFromConfig() {
+    private static String getSessionFromDotFile() {
         final String confPathStr = System.getProperty("user.home") + File.separator + Settings.KEY_FILENAME;
         final Path confPath = Paths.get(confPathStr);
         String result = null;
