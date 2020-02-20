@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Mikhail Antonov
+ * Copyright 2016-2020 Mikhail Antonov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,33 +13,71 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.cyllene.hackerrank.downloader;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.ParseException;
-import org.junit.Test;
+import net.cyllene.hackerrank.downloader.exceptions.ExitWithErrorException;
+import net.cyllene.hackerrank.downloader.exceptions.ExitWithHelpException;
+import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ArgumentParserTest {
-	@Test
-	public void argumentsAreParsed() {
-		CommandLine cmd = HackerrankDownloader.parseArguments(
-				new String[]{"--help", "--offset", "10", "-v", "--directory=something"});
-		assertThat(cmd.hasOption("help"), is(true)); // help
-		assertThat(cmd.hasOption('o'), is(true)); // offset
-		assertThat(cmd.hasOption('v'), is(true)); // verbose
-		Integer offset = DownloaderSettings.ITEMS_TO_SKIP;
-		try {
-			offset = ((Number) cmd.getParsedOptionValue("offset")).intValue();
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		assertThat(offset, equalTo(10));
-		assertThat(cmd.hasOption("directory"), is(true));
-		assertThat(cmd.getOptionValue("directory"), equalTo("something"));
-	}
+
+    @Test
+    public void helpOptionShouldCauseProgramToQuitWithMessage() {
+        assertThatExceptionOfType(ExitWithHelpException.class).isThrownBy(() ->
+                CommandLineDispatcher.INSTANCE.parseArguments(
+                        new String[]{"-v", "--help"})
+        );
+    }
+
+    @Test
+    public void limitOptionShouldCauseErrorIfWrongDataSupplied() {
+        assertThatExceptionOfType(ExitWithErrorException.class).isThrownBy(
+                () -> CommandLineDispatcher.INSTANCE.parseArguments(
+                        new String[]{"--limit", "Not_a_number"})
+        )
+                .withMessageStartingWith("Incorrect limit");
+    }
+
+    @Test
+    public void offsetOptionShouldCauseErrorIfWrongDataSupplied() {
+        assertThatExceptionOfType(ExitWithErrorException.class).isThrownBy(
+                () -> CommandLineDispatcher.INSTANCE.parseArguments(
+                        new String[]{"--offset", "Not_a_number"})
+        )
+                .withMessageStartingWith("Incorrect offset");
+    }
+
+    @Test
+    public void limitOptionShouldBeParsed() {
+
+        Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(
+                new String[]{"--limit", "981"});
+
+        assertThat(settings.getLimit()).isEqualTo(981);
+    }
+
+    @Test
+    public void offsetOptionShouldBeParsed() {
+        Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(
+                new String[]{"--offset", "463"});
+
+        assertThat(settings.getOffset()).isEqualTo(463);
+    }
+
+    @Test
+    public void directoryOptionShouldBeConsidered() {
+        Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(
+                new String[]{"--directory", "custom-out"});
+
+        assertThat(settings.getOutputDir().toString()).endsWith("custom-out");
+
+        settings = CommandLineDispatcher.INSTANCE.parseArguments(
+                new String[]{"-d", "another-custom-out"});
+
+        assertThat(settings.getOutputDir().toString()).endsWith("another-custom-out");
+    }
+
 }

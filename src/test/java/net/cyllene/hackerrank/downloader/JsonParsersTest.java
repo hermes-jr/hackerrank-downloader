@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Mikhail Antonov
+ * Copyright 2016-2020 Mikhail Antonov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.cyllene.hackerrank.downloader;
 
+import net.cyllene.hackerrank.downloader.dto.ChallengeDetails;
+import net.cyllene.hackerrank.downloader.dto.SubmissionDetails;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
@@ -23,130 +24,113 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class JsonParsersTest {
 
-	@Mock
-	private HttpClient mockHttpClient;
+    @Mock
+    private HttpClient mockHttpClient;
 
-	@Before
-	public void initMocks() {
-		MockitoAnnotations.initMocks(this);
-	}
+    private ChallengesRepository dc;
 
-	/**
-	 * Test authenticateAndGetURL(String url) with a mock server response
-	 */
-	@Test
-	public void testChallengeDescriptionParser() throws Exception {
-		String responseBody = getFakeData("/test_sample_submission.json");
+    @BeforeEach
+    void init() {
+        MockitoAnnotations.initMocks(this);
 
-		HttpResponse response = prepareFakeResponse(200, responseBody);
+        dc = ChallengesRepository.INSTANCE;
+        dc.setSettings(new Settings()); // Defaults
+        dc.setHttpClient(mockHttpClient);
+    }
 
-		when(mockHttpClient.execute(any(HttpUriRequest.class)))
-				.thenReturn(response);
+    @Test
+    void submissionsListShouldBeParsed() throws Exception {
+        String responseBody = getFakeData("/submissions_list_sample.json");
 
-		DownloaderCore dc = DownloaderCore.INSTANCE;
-		dc.setHttpClient(mockHttpClient);
-		HRSubmission candidate = dc.getSubmissionDetails(new Random().nextInt());
+        HttpResponse response = prepareFakeSuccessResponse(responseBody);
 
-		HRSubmission reference = new HRSubmission.Builder(100, 999919L, 1)
-				.language("java")
-				.hackerId(222)
-				.sourceCode("import something\nexport something".replaceAll("\n", System.lineSeparator()))
-				.status("Accepted")
-				.kind("code")
-				.score(20.0)
-				.build();
+        when(mockHttpClient.execute(any(HttpUriRequest.class)))
+                .thenReturn(response);
 
-		System.out.println("Can: " + candidate);
-		System.out.println("Ref: " + reference);
+        Settings downloadEverything = new Settings();
+        downloadEverything.setAcceptedOnly(false);
+        dc.setSettings(downloadEverything);
 
-		assertThat(candidate, equalTo(reference));
-	}
+        Map<String, List<Long>> result = dc.getSubmissionsList(0, 10);
+        // There are 3 valid challenges in the sample json file
+        assertThat(result.values().stream().flatMap(List::stream).collect(Collectors.toSet())).hasSize(3);
 
-	/**
-	 * Test authenticateAndGetURL(String url) with a mock server response
-	 */
-	@Test
-	public void getStructure() throws Exception {
-		String responseBody = getFakeData("/test_sample_list_of_submissions.json");
+        // Grouped into 2 challenges
+        assertThat(result).hasSize(2);
 
-		HttpResponse response = prepareFakeResponse(200, responseBody);
+        // One of them is "birthday-cake-candles"
+        assertThat(result).containsKey("birthday-cake-candles");
+    }
 
-		when(mockHttpClient.execute(any(HttpUriRequest.class)))
-				.thenReturn(response);
+    @Test
+    void challengeDetailsShouldBeParsed() throws Exception {
+        String responseBody = getFakeData("/challenge_details_sample.json");
 
-		DownloaderCore dc = DownloaderCore.INSTANCE;
-		dc.setHttpClient(mockHttpClient);
+        HttpResponse response = prepareFakeSuccessResponse(responseBody);
 
-		Map<String, List<Integer>> result = dc.getStructure(0, 10);
-		// There are 10 valid challenges in the sample json file
-		assertThat(result.size(), equalTo(10));
-		assertTrue(result.containsKey("maximise-sum"));
-	}
+        when(mockHttpClient.execute(any(HttpUriRequest.class)))
+                .thenReturn(response);
 
-	@Test
-	public void getChallengeDetails() throws Exception {
-		String responseBody = getFakeData("/test_sample_challenge_details.json");
+        ChallengeDetails challenge = dc.getChallengeDetails("stub-slug");
 
-		HttpResponse response = prepareFakeResponse(200, responseBody);
+        assertThat(challenge.getPreview()).isEqualTo("Find the maximum and minimum values obtained by summing four of five integers.");
 
-		when(mockHttpClient.execute(any(HttpUriRequest.class)))
-				.thenReturn(response);
+        assertThat(challenge.getBodyHtml()).contains("challenge_problem_statement");
+    }
 
-		DownloaderCore dc = DownloaderCore.INSTANCE;
-		dc.setHttpClient(mockHttpClient);
+    @Test
+    void submissionCodeShouldBeAvailable() throws Exception {
+        String responseBody = getFakeData("/submission_details_sample.json");
 
-		HRChallenge challenge = dc.getChallengeDetails(new Random().nextInt());
+        HttpResponse response = prepareFakeSuccessResponse(responseBody);
 
-		System.out.println(challenge);
-	}
+        when(mockHttpClient.execute(any(HttpUriRequest.class)))
+                .thenReturn(response);
 
-	@Test
-	public void getChallengeDescriptions() throws Exception {
-		String jsonStr = getFakeData("/test_sample_challenge_details.json");
+        SubmissionDetails submissionDetails = dc.getSubmissionDetails(92273619);
 
-		DownloaderCore dc = DownloaderCore.INSTANCE;
-		List z = dc.getChallengeDescriptions(jsonStr);
+        assertThat(submissionDetails.getId()).isEqualTo(92273619);
 
-		// There are 4 valid descriptions in the sample json file
-		System.out.println(z);
+        assertThat(submissionDetails.getCreatedAt().toLocalDate()).isEqualTo(LocalDate.of(2018, 12, 5));
+        assertThat(submissionDetails.getLanguage()).isEqualTo("go");
+        assertThat(submissionDetails.getCode())
+                .contains("source code")
+                .contains("multiline");
+    }
 
-		assertThat(z.size(), equalTo(4));
-	}
+    private HttpResponse prepareFakeSuccessResponse(String expectedResponseBody) {
+        int okCode = 200;
+        HttpResponse response = new BasicHttpResponse(new BasicStatusLine(
+                new ProtocolVersion("HTTP", 1, 1), okCode, ""));
+        response.setStatusCode(okCode);
+        try {
+            response.setEntity(new StringEntity(expectedResponseBody));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
 
-	private HttpResponse prepareFakeResponse(int expectedResponseStatus,
-											 String expectedResponseBody) {
-		HttpResponse response = new BasicHttpResponse(new BasicStatusLine(
-				new ProtocolVersion("HTTP", 1, 1), expectedResponseStatus, ""));
-		response.setStatusCode(expectedResponseStatus);
-		try {
-			response.setEntity(new StringEntity(expectedResponseBody));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return response;
-	}
-
-	private String getFakeData(String path) {
-		Scanner fakeData = new Scanner(this.getClass().getResourceAsStream(path), StandardCharsets.UTF_8.name());
-		return fakeData.useDelimiter("\\Z").next();
-	}
+    private String getFakeData(String path) {
+        Scanner fakeData = new Scanner(this.getClass().getResourceAsStream(path), StandardCharsets.UTF_8.name());
+        return fakeData.useDelimiter("\\Z").next();
+    }
 }

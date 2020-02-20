@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Mikhail Antonov
+ * Copyright 2016-2020 Mikhail Antonov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package net.cyllene.hackerrank.downloader.dto;
 
-package net.cyllene.hackerrank.downloader;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import java.util.List;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({
-		HRChallengeDescriptionTest.class,
-		HRSubmissionTest.class,
-		JsonParsersTest.class,
-		ArgumentParserTest.class
-})
-
-public class TestSuite {
+/**
+ * /rest/contests/master/submissions/
+ * A wrapper class
+ */
+@Data
+@NoArgsConstructor
+public class SubmissionsCollection {
+    private List<SubmissionSummary> models;
+    private int total;
 }
