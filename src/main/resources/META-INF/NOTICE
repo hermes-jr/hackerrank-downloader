@@ -1,21 +1,33 @@
 HackerrankDownloader
-Copyright 2016 Mikhail Antonov
+Copyright 2016-2020 Mikhail Antonov
 
-This product includes software developed by Mikhail Antonov (hermes@compot.ru).
+This product includes software developed by Mikhail Antonov (hermes@cyllene.net).
 
 This product includes other 3rd party software as indicated below:
-- Apache Commons CLI 1.3.1
+- Project Lombok
+    by  The Project Lombok Authors
+    under The MIT License (https://opensource.org/licenses/MIT)
+- Apache Commons CLI
 	by The Apache Software Foundation
 	under Apache License, Version 2.0
-- Apache HttpClient 4.5.2
+- Apache Commons Lang
 	by The Apache Software Foundation
 	under Apache License, Version 2.0
-- Jackson-Databind 2.7.3
+- Apache HttpClient
+	by The Apache Software Foundation
+	under Apache License, Version 2.0
+- Jackson-Databind
 	by Tatu Saloranta and a community of developers (http://fasterxml.com)
 	under Apache License, Version 2.0
-- Mockito-Core 1.10.19
+- Mockito-Core
 	by Mockito contributors
 	under The MIT License (https://opensource.org/licenses/MIT)
-- Hamcrest-Core 1.1
+- Hamcrest-Core
 	by www.hamcrest.org
 	under BSD License (https://opensource.org/licenses/BSD-3-Clause)
+- AssertJ-Core
+    by the original author or authors
+    under Apache License, Version 2.0
+- Junit5
+    by the original author or authors
+    under Eclipse Public License v2.0 (https://www.eclipse.org/legal/epl-v20.html)

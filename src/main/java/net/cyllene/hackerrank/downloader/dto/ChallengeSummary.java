@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Mikhail Antonov
+ * Copyright 2016-2020 Mikhail Antonov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.cyllene.hackerrank.downloader.dto;
 
 import lombok.Data;
@@ -22,6 +21,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class ChallengeSummary {
+    /**
+     * Human-readable name
+     */
     private String name;
+    /**
+     * Part of URL
+     */
     private String slug;
 }

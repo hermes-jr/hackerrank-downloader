@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Mikhail Antonov
+ * Copyright 2016-2020 Mikhail Antonov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.cyllene.hackerrank.downloader;
 
 import lombok.RequiredArgsConstructor;
@@ -109,30 +108,11 @@ public class HackerrankDownloader implements Runnable {
         }
     }
 
-    private void dumpSubmissionToFile(String challengeSlug, SubmissionDetails submissionSummary) {
-        final Path sChallengePath = settings.getOutputDir().resolve(challengeSlug);
-        final Path sSolutionPath = sChallengePath.resolve("accepted_solutions");
-
-        try {
-            Files.createDirectories(sSolutionPath);
-        } catch (IOException e) {
-            throw new ExitWithErrorException("Unable to create solutions directory for challenge: " + challengeSlug);
-        }
-
-        String solutionFilename = String.format("%d.%s", submissionSummary.getId(), submissionSummary.getLanguage());
-        Path solutionFilePath = sSolutionPath.resolve(solutionFilename);
-
-        if (settings.isVerbose()) {
-            System.out.println("Writing: " + solutionFilePath);
-        }
-
-        try {
-            Files.write(solutionFilePath, submissionSummary.getCode().getBytes(StandardCharsets.UTF_8.name()));
-        } catch (IOException e) {
-            throw new ExitWithErrorException(e);
-        }
-    }
-
+    /**
+     * Creates necessary directories, stores each challenge description in a file
+     *
+     * @param currentChallenge Data that describes a single challenge: id, problem text
+     */
     private void dumpChallengeToFiles(ChallengeDetails currentChallenge) {
         final Path sChallengePath = settings.getOutputDir().resolve(currentChallenge.getSlug());
         final Path sDescriptionPath = sChallengePath.resolve("problem_description");
@@ -153,6 +133,36 @@ public class HackerrankDownloader implements Runnable {
 
         try {
             Files.write(problemFilePath, temporaryHtmlTemplate.getBytes(StandardCharsets.UTF_8.name()));
+        } catch (IOException e) {
+            throw new ExitWithErrorException(e);
+        }
+    }
+
+    /**
+     * Creates necessary directories, stores each submission in a file named {submission_id}.{programming_language}
+     *
+     * @param challengeSlug     Challenge short code suitable for directory naming
+     * @param submissionDetails Data that describes a single submission: id, type, source, etc.
+     */
+    private void dumpSubmissionToFile(String challengeSlug, SubmissionDetails submissionDetails) {
+        final Path sChallengePath = settings.getOutputDir().resolve(challengeSlug);
+        final Path sSolutionPath = sChallengePath.resolve("accepted_solutions");
+
+        try {
+            Files.createDirectories(sSolutionPath);
+        } catch (IOException e) {
+            throw new ExitWithErrorException("Unable to create solutions directory for challenge: " + challengeSlug);
+        }
+
+        String solutionFilename = String.format("%d.%s", submissionDetails.getId(), submissionDetails.getLanguage());
+        Path solutionFilePath = sSolutionPath.resolve(solutionFilename);
+
+        if (settings.isVerbose()) {
+            System.out.println("Writing: " + solutionFilePath);
+        }
+
+        try {
+            Files.write(solutionFilePath, submissionDetails.getCode().getBytes(StandardCharsets.UTF_8.name()));
         } catch (IOException e) {
             throw new ExitWithErrorException(e);
         }

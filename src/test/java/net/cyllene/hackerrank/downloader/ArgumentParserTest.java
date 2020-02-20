@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Mikhail Antonov
+ * Copyright 2016-2020 Mikhail Antonov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.cyllene.hackerrank.downloader;
 
 import net.cyllene.hackerrank.downloader.exceptions.ExitWithErrorException;
@@ -24,23 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ArgumentParserTest {
-/*    @Test
-    public void argumentsAreParsed() {
-        Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(
-                new String[]{"--help", "--offset", "10", "-v", "--directory=something"});
-        assertThat(settings.hasOption("help")).isTrue(); // help
-        assertThat(settings.hasOption('o')).isTrue(); // offset
-        assertThat(settings.hasOption('v')).isTrue(); // verbose
-        int offset = Settings.ITEMS_TO_SKIP;
-        try {
-            offset = ((Number) settings.getParsedOptionValue("offset")).intValue();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        assertThat(offset).isEqualTo(10);
-        assertThat(settings.hasOption("directory")).isTrue();
-        assertThat(settings.getOptionValue("directory")).isEqualTo("something");
-    }*/
 
     @Test
     public void helpOptionShouldCauseProgramToQuitWithMessage() {
@@ -97,4 +79,5 @@ public class ArgumentParserTest {
 
         assertThat(settings.getOutputDir().toString()).endsWith("another-custom-out");
     }
+
 }

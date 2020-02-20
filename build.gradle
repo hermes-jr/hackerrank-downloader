@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'net.cyllene.hackerrank'
-version '0.0.4'
+version '0.1.0'
 sourceCompatibility = 1.8
 
 repositories {
@@ -23,7 +23,6 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:3.2.4'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
     implementation 'org.apache.commons:commons-lang3:3.9'
-    implementation 'org.apache.commons:commons-math3:3.6.1'
     implementation 'org.apache.httpcomponents:httpclient:4.5.11'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.10.2'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.2'
@@ -49,6 +48,22 @@ task jarComplete(type: Jar, dependsOn: jar) {
 
     with jar
 }
+
+/*
+ * Copyright 2016-2020 Mikhail Antonov
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 // Workaround for Windows
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'

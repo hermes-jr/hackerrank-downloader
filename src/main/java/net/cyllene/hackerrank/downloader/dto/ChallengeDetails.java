@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Mikhail Antonov
+ * Copyright 2016-2020 Mikhail Antonov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.cyllene.hackerrank.downloader.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -28,16 +27,16 @@ import lombok.NoArgsConstructor;
 public class ChallengeDetails {
     private long id;
     /**
-     * Part of url
+     * Part of URL
      */
     private String slug;
     /**
-     * contains a UTF-8 string with HTML markup
+     * Problem description in HTML markup
      */
     @JsonProperty("body_html")
     private String bodyHtml;
     /**
-     * Short description
+     * Short problem description
      */
     private String preview;
 }
