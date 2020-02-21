@@ -26,7 +26,7 @@ jobs:
     - name: Assemble a fatJar
       run: ./gradlew jarComplete
     - name: Archive artifacts
-        uses: actions/upload-artifact@v1
-        with:
-          name: libs
-          path: build/libs
+      uses: actions/upload-artifact@v1
+      with:
+        name: libs
+        path: build/libs
