@@ -193,7 +193,7 @@ public class HackerrankDownloader implements Runnable {
                         + ", set the --force flag if you are sure. May lead to data loss, be careful.");
             }
         }
-        // FIXME: when a name without relative path is provided by user we get NPE (.getParent)
+
         if ((Files.exists(desiredDirectory) && !Files.isWritable(desiredDirectory)) || !Files.isWritable(desiredDirectory.getParent())) {
             throw new ExitWithErrorException("Fatal error: " + desiredDirectory + " cannot be created or modified. Check permissions.");
         }

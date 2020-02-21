@@ -114,7 +114,7 @@ enum CommandLineDispatcher {
         if (cmd.hasOption("directory")) {
             String providedD = cmd.getOptionValue("d");
             try {
-                settings.setOutputDir(Paths.get(providedD));
+                settings.setOutputDir(Paths.get(providedD).toAbsolutePath().normalize());
             } catch (InvalidPathException e) {
                 throw new ExitWithErrorException("Value provided with --directory option is invalid: " + providedD);
             }

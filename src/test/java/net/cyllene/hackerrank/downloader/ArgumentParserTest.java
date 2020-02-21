@@ -80,4 +80,12 @@ public class ArgumentParserTest {
         assertThat(settings.getOutputDir().toString()).endsWith("another-custom-out");
     }
 
+    @Test
+    public void pathResolverShouldNotCauseNPE() {
+        Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(
+                new String[]{"--directory", "custom-out"});
+
+        assertThat(settings.getOutputDir().isAbsolute()).isTrue();
+    }
+
 }
