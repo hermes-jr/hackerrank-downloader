@@ -15,5 +15,7 @@ jobs:
         java-version: 1.8
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
+    - name: Build and test with Gradle
+      run: ./gradlew clean build
+    - name: Assemble a fatJar
+      run: ./gradlew jarComplete

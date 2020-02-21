@@ -1,6 +1,7 @@
 # HackerRank Submissions Downloader 
 
 [![Build Status](https://travis-ci.org/hermes-jr/hackerrank-downloader.svg?branch=master)](https://travis-ci.org/hermes-jr/hackerrank-downloader)
+![Java CI](https://github.com/hermes-jr/hackerrank-downloader/workflows/Java%20CI/badge.svg?branch=master)
 
 ## Usage
 
