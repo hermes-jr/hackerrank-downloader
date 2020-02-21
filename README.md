@@ -1,6 +1,6 @@
 # HackerRank Submissions Downloader 
 
-[![Build Status](https://travis-ci.org/hermes-jr/hackerrank-get-my-solutions.svg?branch=master)](https://travis-ci.org/hermes-jr/hackerrank-get-my-solutions)
+[![Build Status](https://travis-ci.org/hermes-jr/hackerrank-downloader.svg?branch=master)](https://travis-ci.org/hermes-jr/hackerrank-downloader)
 
 ## Usage
 
