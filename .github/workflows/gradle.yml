@@ -18,7 +18,8 @@ jobs:
     - name: Build and test with Gradle
       run: ./gradlew clean build
 
-  assemble: Assemble a fatJar
+  assemble:
+    name: Assemble a fatJar
     needs: build
     runs-on: ubuntu-latest
     steps:
