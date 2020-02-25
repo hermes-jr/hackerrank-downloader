@@ -24,13 +24,11 @@ import net.cyllene.hackerrank.downloader.dto.SubmissionDetails;
 import net.cyllene.hackerrank.downloader.dto.SubmissionSummary;
 import net.cyllene.hackerrank.downloader.dto.SubmissionsCollection;
 import net.cyllene.hackerrank.downloader.exceptions.ExitWithErrorException;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicResponseHandler;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,9 +57,9 @@ enum ChallengesRepository {
     Map<String, List<Long>> getSubmissionsList(int offset, int limit) throws IOException {
         Map<String, List<Long>> result = new HashMap<>();
 
-        String body = getJsonStringFrom("/rest/contests/master/submissions/?offset=" + offset + "&limit=" + limit);
+        InputStream responseStream = getJsonStringFrom("/rest/contests/master/submissions/?offset=" + offset + "&limit=" + limit);
 
-        SubmissionsCollection submissions = mapper.readValue(body.getBytes(), SubmissionsCollection.class);
+        SubmissionsCollection submissions = mapper.readValue(responseStream, SubmissionsCollection.class);
 
         for (SubmissionSummary submissionSummary : submissions.getModels()) {
             if (settings.isAcceptedOnly() && Settings.STATUS_CODE_ACCEPTED != submissionSummary.getStatusCode()) {
@@ -86,9 +84,9 @@ enum ChallengesRepository {
      * @return {@link ChallengeDetails} object created from JSON returned by server
      */
     public ChallengeDetails getChallengeDetails(String slug) throws IOException {
-        String body = getJsonStringFrom("/rest/contests/master/challenges/" + slug);
+        InputStream responseStream = getJsonStringFrom("/rest/contests/master/challenges/" + slug);
 
-        JsonNode node = mapper.readValue(body.getBytes(), JsonNode.class).get("model"); // Strip of wrapper class
+        JsonNode node = unwrapModel(responseStream);
         return mapper.convertValue(node, ChallengeDetails.class);
     }
 
@@ -99,40 +97,39 @@ enum ChallengesRepository {
      * @return {@link SubmissionSummary} object created from JSON returned by server
      */
     public SubmissionDetails getSubmissionDetails(long id) throws IOException {
-        String body = getJsonStringFrom("/rest/contests/master/submissions/" + id);
+        InputStream responseStream = getJsonStringFrom("/rest/contests/master/submissions/" + id);
 
-        JsonNode node = mapper.readValue(body.getBytes(), JsonNode.class).get("model");  // Strip of wrapper class
+        JsonNode node = unwrapModel(responseStream);
         SubmissionDetails submissionDetails = mapper.convertValue(node, SubmissionDetails.class);
         submissionDetails.setCode(submissionDetails.getCode().replaceAll("\n", System.lineSeparator())); // ?
         return submissionDetails;
     }
 
     /**
-     * Returns body from GET request to specified URL using Cookie authentication
+     * Returns body from GET request to specified URL
      *
      * @param url The url argument must specify an absolute URL
      * @return JSON string returned by server from supplied address
      */
-    private String getJsonStringFrom(String url) {
-        ResponseHandler<String> handler = new BasicResponseHandler();
-
-        String body;
+    private InputStream getJsonStringFrom(String url) {
         try {
-            body = handler.handleResponse(authenticateAndGetURL(Settings.BASE_URL + url));
+            if (settings.isVerbose()) {
+                System.out.println("Getting: " + url);
+            }
+            return httpClient.execute(new HttpGet(Settings.BASE_URL + url)).getEntity().getContent();
         } catch (IOException e) {
             if (settings.isVerbose()) {
                 e.printStackTrace();
             }
             throw new ExitWithErrorException("Could not get JSON data from server");
         }
-        return body;
     }
 
-    private HttpResponse authenticateAndGetURL(String url) throws IOException {
-        if (settings.isVerbose()) {
-            System.out.println("Getting: " + url);
-        }
-        return httpClient.execute(new HttpGet(url));
+    /**
+     * Strip off wrapper object "model"
+     */
+    private JsonNode unwrapModel(InputStream responseStream) throws IOException {
+        return mapper.readValue(responseStream, JsonNode.class).get("model");
     }
 
 }

@@ -20,6 +20,8 @@ import net.cyllene.hackerrank.downloader.dto.ChallengeDetails;
 import net.cyllene.hackerrank.downloader.dto.SubmissionDetails;
 import net.cyllene.hackerrank.downloader.exceptions.ExitWithErrorException;
 import net.cyllene.hackerrank.downloader.exceptions.ExitWithHelpException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,26 +32,30 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import static net.cyllene.hackerrank.downloader.HttpClientConfiguration.httpClient;
+import static net.cyllene.hackerrank.downloader.HttpClientConfiguration.configureHttpClient;
 
 @RequiredArgsConstructor
 public class HackerrankDownloader implements Runnable {
-    static final String SECRET_KEY = getSessionFromDotFile();
     private final Settings settings;
-    private final ChallengesRepository dc;
+    private final ChallengesRepository challengesRepository;
+    private final AuthenticationRepository authenticationRepository;
 
     public static void main(String[] args) {
         try {
             // Parse and validate arguments, configure settings
             Settings settings = CommandLineDispatcher.INSTANCE.parseArguments(args);
 
+            HttpClient httpClient = configureHttpClient(getSessionIdFromDotFile());
             // Initialize data repository, inject dependencies
-            ChallengesRepository dc = ChallengesRepository.INSTANCE;
-            dc.setSettings(settings);
-            dc.setHttpClient(httpClient(SECRET_KEY));
+            ChallengesRepository cr = ChallengesRepository.INSTANCE;
+            cr.setSettings(settings);
+            cr.setHttpClient(httpClient);
 
+            AuthenticationRepository ar = AuthenticationRepository.INSTANCE;
+            ar.setSettings(settings);
+            ar.setHttpClient(httpClient);
             // Initialize main class
-            HackerrankDownloader downloader = new HackerrankDownloader(settings, dc);
+            HackerrankDownloader downloader = new HackerrankDownloader(settings, cr, ar);
 
             downloader.run();
         } catch (ExitWithHelpException e) {
@@ -64,10 +70,18 @@ public class HackerrankDownloader implements Runnable {
     @Override
     public void run() {
         ensureOutputDirectoryIsAvailable();
+        if (!StringUtils.isBlank(settings.getUsername())) {
+            // fixme: if a key is present in dotfile, this does nothing. should be solved before this moment
+            authenticationRepository.sendAuthRequest();
+        }
+        /* else {
+            // todo: the cookie must be set by this moment. Here is too late. refactor, DiskIORepository maybe?
+            getSessionIdFromDotFile();
+        }*/
 
         Map<String, List<Long>> groupedSubmissionIds;
         try {
-            groupedSubmissionIds = dc.getSubmissionsList(settings.getOffset(), settings.getLimit());
+            groupedSubmissionIds = challengesRepository.getSubmissionsList(settings.getOffset(), settings.getLimit());
         } catch (IOException e) {
             throw new ExitWithErrorException("Fatal Error: could not get submissions list.");
         }
@@ -81,7 +95,7 @@ public class HackerrankDownloader implements Runnable {
     private void downloadAndSaveChallenge(String challengeSlug, Iterable<Long> submissionIds) {
         ChallengeDetails currentChallenge;
         try {
-            currentChallenge = dc.getChallengeDetails(challengeSlug);
+            currentChallenge = challengesRepository.getChallengeDetails(challengeSlug);
         } catch (IOException e) {
             if (settings.isVerbose()) {
                 e.printStackTrace();
@@ -95,7 +109,7 @@ public class HackerrankDownloader implements Runnable {
         for (Long submissionId : submissionIds) {
             SubmissionDetails submissionSummary;
             try {
-                submissionSummary = dc.getSubmissionDetails(submissionId);
+                submissionSummary = challengesRepository.getSubmissionDetails(submissionId);
 
                 dumpSubmissionToFile(challengeSlug, submissionSummary);
             } catch (IOException e) {
@@ -200,29 +214,26 @@ public class HackerrankDownloader implements Runnable {
     }
 
     /**
-     * Gets a secret key from configuration file in user.home.
-     * The secret key is a _hrank_session variable stored in cookies by server.
-     * To simplify things, no login logic is present in this program, it means
-     * you should login somewhere else and then provide this value in the config.
+     * Gets a secret session ID from configuration file in user.home.
+     * It is a value of {@link Settings#COOKIE_SESSION_NAME} cookie stored by server.
+     * May be used as an option when you want your credentials to be kept in secret even
+     * from such simple programs as this one ;-) OR if you sign in using OAuth.
      *
      * @return String representing a _hrank_session id, about 430 characters long.
      */
-    private static String getSessionFromDotFile() {
+    private static String getSessionIdFromDotFile() {
         final String confPathStr = System.getProperty("user.home") + File.separator + Settings.KEY_FILENAME;
         final Path confPath = Paths.get(confPathStr);
-        String result = null;
         try {
-            result = Files.readAllLines(confPath, StandardCharsets.US_ASCII).get(0);
-        } catch (IOException e) {
-            System.err.println("Fatal Error: Unable to open configuration file " + confPathStr
+            return Files.readAllLines(confPath, StandardCharsets.US_ASCII).get(0);
+        } catch (IOException | IndexOutOfBoundsException e) {
+            String message = "Fatal Error: Unable to open configuration file " + confPathStr
                     + System.lineSeparator() + "File might be missing, empty or inaccessible by user."
                     + System.lineSeparator() + "It must contain a single ASCII line, a value of \""
-                    + Settings.COOKIE_NAME + "\" cookie variable,"
-                    + System.lineSeparator() + "which length is about 430 symbols.");
-            System.exit(1);
+                    + Settings.COOKIE_SESSION_NAME + "\" cookie variable,"
+                    + System.lineSeparator() + "which length is about 430 symbols.";
+            throw new ExitWithErrorException(message);
         }
-
-        return result;
     }
 
 }

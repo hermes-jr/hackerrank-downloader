@@ -19,8 +19,7 @@ import net.cyllene.hackerrank.downloader.exceptions.ExitWithErrorException;
 import net.cyllene.hackerrank.downloader.exceptions.ExitWithHelpException;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 
 public class ArgumentParserTest {
 
@@ -86,6 +85,28 @@ public class ArgumentParserTest {
                 new String[]{"--directory", "custom-out"});
 
         assertThat(settings.getOutputDir().isAbsolute()).isTrue();
+    }
+
+    @Test
+    public void usernameAndPasswordShouldBeMutuallyRequired() {
+        final String fakeUsername = "example@example.com";
+        final String fakePassword = "<empty>";
+
+        assertThatExceptionOfType(ExitWithErrorException.class).isThrownBy(
+                () -> CommandLineDispatcher.INSTANCE.parseArguments(
+                        new String[]{"--username", fakeUsername})
+        )
+                .withMessageContaining("provide both");
+
+        assertThatExceptionOfType(ExitWithErrorException.class).isThrownBy(
+                () -> CommandLineDispatcher.INSTANCE.parseArguments(
+                        new String[]{"--password", fakePassword})
+        )
+                .withMessageContaining("provide both");
+
+        assertThatCode(() -> CommandLineDispatcher.INSTANCE.parseArguments(
+                new String[]{"--username", fakeUsername, "--password", fakePassword})
+        ).doesNotThrowAnyException();
     }
 
 }

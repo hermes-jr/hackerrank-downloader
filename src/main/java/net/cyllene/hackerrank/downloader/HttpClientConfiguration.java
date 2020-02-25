@@ -28,12 +28,13 @@ import org.apache.http.impl.cookie.BasicClientCookie;
  * Creates a configured {@link HttpClient} to be injected into {@link ChallengesRepository}
  */
 class HttpClientConfiguration {
-    static HttpClient httpClient(String secretKey) {
+
+    static HttpClient configureHttpClient(String secretKey) {
         BasicCookieStore cookieStore = new BasicCookieStore();
-        BasicClientCookie cookie = new BasicClientCookie(Settings.COOKIE_NAME, secretKey);
-        cookie.setDomain(Settings.DOMAIN);
-        cookie.setPath("/");
-        cookieStore.addCookie(cookie);
+        BasicClientCookie cookieSession = new BasicClientCookie(Settings.COOKIE_SESSION_NAME, secretKey);
+        cookieSession.setDomain(Settings.DOMAIN);
+        cookieSession.setPath("/");
+        cookieStore.addCookie(cookieSession);
 
         RequestConfig customRequestConfig = RequestConfig.custom()
                 .setContentCompressionEnabled(true)
@@ -45,4 +46,5 @@ class HttpClientConfiguration {
                 .setDefaultCookieStore(cookieStore)
                 .build();
     }
+
 }

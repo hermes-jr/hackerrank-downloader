@@ -66,6 +66,16 @@ enum CommandLineDispatcher {
                 .type(Number.class)
                 .desc("number of items to skip. Default is " + Settings.DEFAULT_OFFSET)
                 .build());
+        options.addOption(Option.builder("u").longOpt("username")
+                .hasArg(true)
+                .argName("USERNAME")
+                .desc("HackerRank account username or email")
+                .build());
+        options.addOption(Option.builder("p").longOpt("password")
+                .hasArg(true)
+                .argName("PASSWORD")
+                .desc("HackerRank account password")
+                .build());
         options.addOption(Option.builder("v").longOpt("verbose")
                 .required(false)
                 .desc("run in verbose mode")
@@ -138,6 +148,13 @@ enum CommandLineDispatcher {
             }
         }
 
+        if (cmd.hasOption("username") && cmd.hasOption("password")) {
+            settings.setUsername(cmd.getOptionValue("u"));
+            settings.setPassword(cmd.getOptionValue("p").toCharArray());
+        } else if (cmd.hasOption("username") ^ cmd.hasOption("password")) {
+            throw new ExitWithErrorException("You should provide both, username and password");
+        }
+
         return settings;
     }
 
@@ -158,10 +175,13 @@ enum CommandLineDispatcher {
                 "If you are experiencing problems with JSON parser, "
                 + "try to run the program with \"-Dfile.encoding=UTF-8\" option"
                 + System.lineSeparator() + System.lineSeparator()
-                + "Application expects a file " + Settings.KEY_FILENAME
-                + " to exist in your home directory. "
-                + "It must contain a single ASCII line, a value of \""
-                + Settings.COOKIE_NAME + "\" cookie variable";
+                + "Application expects either a file " + Settings.KEY_FILENAME
+                + " to exist in your home directory or a --username and --password"
+                + " to be provided. "
+                + System.lineSeparator() + System.lineSeparator()
+                + Settings.KEY_FILENAME + " is an option if you are using OAuth to sign in."
+                + " Just authenticate using your browser and save \""
+                + Settings.COOKIE_SESSION_NAME + "\" cookie value into the file.";
         formatter.printHelp(sUsage, header, cliOptions, footer, true);
     }
 

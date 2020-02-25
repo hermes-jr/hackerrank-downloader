@@ -24,13 +24,15 @@ import java.nio.file.Paths;
 class Settings {
     public static final String DOMAIN = "www.hackerrank.com";
     public static final String BASE_URL = "https://" + DOMAIN;
-    public static final String COOKIE_NAME = "_hrank_session";
+    public static final String COOKIE_SESSION_NAME = "_hrank_session";
     public static final String KEY_FILENAME = ".hackerrank-downloader-key";
     public static final int DEFAULT_LIMIT = 65535;
     public static final int DEFAULT_OFFSET = 0;
     public static final int STATUS_CODE_ACCEPTED = 2;
 
     private Path outputDir = Paths.get("./hackerrank_challenges");
+    private String username;
+    private char[] password;
     private int limit = DEFAULT_LIMIT;
     private int offset = DEFAULT_OFFSET;
     private boolean verbose = false;
