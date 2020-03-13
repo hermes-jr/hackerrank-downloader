@@ -83,10 +83,19 @@ enum ChallengesRepository {
      * @param slug Challenge id (slug), which is passed to server in URL
      * @return {@link ChallengeDetails} object created from JSON returned by server
      */
-    public ChallengeDetails getChallengeDetails(String slug) throws IOException {
+    public ChallengeDetails getChallengeDetails(String slug) {
         InputStream responseStream = getJsonStringFrom("/rest/contests/master/challenges/" + slug);
+        JsonNode node;
 
-        JsonNode node = unwrapModel(responseStream);
+        try {
+            node = unwrapModel(responseStream);
+        } catch (IOException e) {
+            if (settings.isVerbose()) {
+                e.printStackTrace();
+            }
+            throw new ExitWithErrorException("Could not get challenge info for: " + slug);
+        }
+
         return mapper.convertValue(node, ChallengeDetails.class);
     }
 
@@ -96,10 +105,19 @@ enum ChallengesRepository {
      * @param id Submission id, which is passed to server in URL
      * @return {@link SubmissionSummary} object created from JSON returned by server
      */
-    public SubmissionDetails getSubmissionDetails(long id) throws IOException {
+    public SubmissionDetails getSubmissionDetails(long id) {
         InputStream responseStream = getJsonStringFrom("/rest/contests/master/submissions/" + id);
+        JsonNode node;
 
-        JsonNode node = unwrapModel(responseStream);
+        try {
+            node = unwrapModel(responseStream);
+        } catch (IOException e) {
+            if (settings.isVerbose()) {
+                e.printStackTrace();
+            }
+            throw new ExitWithErrorException("Could not get submission info for: " + id);
+        }
+
         SubmissionDetails submissionDetails = mapper.convertValue(node, SubmissionDetails.class);
         submissionDetails.setCode(submissionDetails.getCode().replaceAll("\n", System.lineSeparator())); // ?
         return submissionDetails;
